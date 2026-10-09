@@ -451,6 +451,54 @@ async def admin_user_action(req: AdminUserActionRequest, current_user: dict = De
     return {"status": "success", "message": msg}
 
 # --- Керування оновленнями клієнта (Auto-Updater) ---
+@app.post("/api/admin/publish_latest_update")
+async def publish_latest_update(current_user: dict = Depends(get_current_user)):
+    if not current_user or current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Доступ заборонено. Тільки для власника.")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT version FROM client_releases ORDER BY id DESC LIMIT 1")
+    latest_row = cursor.fetchone()
+
+    # Автоматичний інкремент номера версії (наприклад 1.0.0 -> 1.0.1 -> 1.0.2)
+    latest_dict = dict(latest_row) if latest_row else {}
+    if latest_dict and latest_dict.get("version"):
+        ver_str = str(latest_dict["version"]).lstrip("v").strip()
+        parts = ver_str.split(".")
+        try:
+            if len(parts) >= 3:
+                patch = int(parts[2]) + 1
+                new_ver = f"{parts[0]}.{parts[1]}.{patch}"
+            elif len(parts) == 2:
+                patch = int(parts[1]) + 1
+                new_ver = f"{parts[0]}.{patch}.0"
+            else:
+                new_ver = f"{int(parts[0]) + 1}.0.0"
+        except Exception:
+            new_ver = f"1.0.{int(time.time()) % 1000}"
+    else:
+        new_ver = "1.0.1"
+
+    now = int(time.time())
+    download_url = "/static/updates/MarsClient.jar"
+    changelog = "Оновлення клієнта MarsClient"
+
+    cursor.execute("""
+    INSERT INTO client_releases (version, download_url, changelog, is_public, created_at)
+    VALUES (?, ?, ?, 1, ?)
+    """, (new_ver, download_url, changelog, now))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "success",
+        "message": f"Оновлення v{new_ver} успішно опубліковано для ВСІХ гравців!",
+        "version": new_ver,
+        "download_url": download_url,
+        "created_at": now
+    }
+
 @app.post("/api/admin/publish_release")
 async def publish_release(req: PublishReleaseRequest, current_user: dict = Depends(get_current_user)):
     if not current_user or current_user.get("is_admin") != 1:
@@ -492,7 +540,13 @@ async def admin_get_releases(current_user: dict = Depends(get_current_user)):
     releases = cursor.fetchall()
     conn.close()
 
-    return {"status": "success", "releases": releases}
+    latest = releases[0] if releases else None
+
+    return {
+        "status": "success",
+        "latest": latest,
+        "releases": releases
+    }
 
 @app.post("/api/launcher/check_update")
 async def launcher_check_update(req: CheckUpdateRequest):
@@ -500,21 +554,23 @@ async def launcher_check_update(req: CheckUpdateRequest):
     user_email = (req.email or "").strip().lower()
     username = (req.username or "").strip().lower()
 
-    # Перевірка чи це власник (Dev / Test)
+    # Перевірка чи це власник (Dol4k / grabovyi)
     is_owner = False
-    if user_email == ADMIN_EMAIL.lower() or username in ["dol4k", "grabovyiadmin"]:
+    if user_email == ADMIN_EMAIL.lower() or username in ["dol4k", "grabovyiadmin", "r.grabovyi@gmail.com"]:
         is_owner = True
+
+    # Для власника оновлення через лаунчер НЕ потрібне — ви вже маєте готові файли на своєму комп'ютері!
+    if is_owner:
+        return {
+            "update_available": False,
+            "version": cur_ver,
+            "is_owner": True,
+            "message": "Ви є розробником. Локальна версія актуальна."
+        }
 
     conn = get_connection()
     cursor = conn.cursor()
-
-    if is_owner:
-        # Для власника видаємо найновішу версію (навіть тестову!)
-        cursor.execute("SELECT * FROM client_releases ORDER BY id DESC LIMIT 1")
-    else:
-        # Для звичайних гравців видаємо ТІЛЬКИ версії, схвалені для всіх
-        cursor.execute("SELECT * FROM client_releases WHERE is_public = 1 ORDER BY id DESC LIMIT 1")
-
+    cursor.execute("SELECT * FROM client_releases WHERE is_public = 1 ORDER BY id DESC LIMIT 1")
     latest = cursor.fetchone()
     conn.close()
 
@@ -527,7 +583,7 @@ async def launcher_check_update(req: CheckUpdateRequest):
             "version": latest["version"],
             "download_url": latest["download_url"],
             "changelog": latest["changelog"],
-            "is_dev_build": (latest["is_public"] == 0)
+            "is_dev_build": False
         }
 
     return {"update_available": False, "version": cur_ver}

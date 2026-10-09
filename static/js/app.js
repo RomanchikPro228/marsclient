@@ -627,58 +627,62 @@ async function loadAdminReleases() {
         if (res.ok) {
             const data = await res.json();
             const badge = document.getElementById("activeReleaseBadge");
-            if (data.releases && data.releases.length > 0) {
-                const latestPublic = data.releases.find(r => r.is_public === 1);
-                const latestDev = data.releases.find(r => r.is_public === 0);
+            const statusText = document.getElementById("updaterStatusText");
+
+            if (data.latest) {
+                const ver = data.latest.version || "1.0.0";
                 if (badge) {
-                    if (latestPublic) {
-                        badge.innerText = `Стабільна версія: v${latestPublic.version}`;
-                    } else if (latestDev) {
-                        badge.innerText = `У тесті: v${latestDev.version} (Dev)`;
-                    }
+                    badge.innerText = `Поточна версія: v${ver}`;
                 }
+                if (statusText) {
+                    const dateStr = data.latest.created_at ? new Date(data.latest.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    statusText.innerText = `Версія v${ver} активна для всіх гравців ${dateStr ? `(оновлено о ${dateStr})` : ''}`;
+                }
+            } else if (badge) {
+                badge.innerText = "Поточна версія: v1.0.0";
             }
         }
     } catch (e) {}
 }
 
-// Публікація оновлення клієнта
-async function handlePublishRelease(e) {
-    e.preventDefault();
-    const version = document.getElementById("relVersion").value.trim();
-    const download_url = document.getElementById("relUrl").value.trim();
-    const changelog = document.getElementById("relChangelog").value.trim();
-    const targetRadio = document.querySelector('input[name="relTarget"]:checked');
-    const is_public = targetRadio ? targetRadio.value === "public" : false;
-    const btn = document.getElementById("publishReleaseBtn");
-
-    if (!version || !download_url) {
-        showToast("Вкажіть номер версії та посилання на файл!", "warning");
-        return;
-    }
+// Публікація оновлення клієнта в 1 клік
+async function handleOneClickUpdate() {
+    const btn = document.getElementById("oneClickUpdateBtn");
+    const statusText = document.getElementById("updaterStatusText");
+    if (!btn) return;
 
     btn.disabled = true;
-    btn.innerText = "Збереження...";
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="btn-glow-icon">⏳</span> <span>Оновлення реєструється...</span>';
+
+    if (statusText) {
+        statusText.innerText = "Публікація нової версії на сервері...";
+    }
 
     try {
-        const res = await fetch("/api/admin/publish_release", {
+        const res = await fetch("/api/admin/publish_latest_update", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ version, download_url, changelog, is_public })
+            headers: { "Content-Type": "application/json" }
         });
         const data = await res.json();
 
         if (res.ok) {
-            showToast(data.message, "success");
-            loadAdminReleases();
+            showToast(data.message || "Оновлення успішно опубліковано для ВСІХ гравців!", "success");
+            await loadAdminReleases();
         } else {
-            showToast(data.detail || "Помилка збереження оновлення", "error");
+            showToast(data.detail || "Помилка при публікації оновлення", "error");
+            if (statusText) {
+                statusText.innerText = "Помилка при публікації. Спробуйте ще раз.";
+            }
         }
     } catch (err) {
         showToast("Помилка зв'язку з сервером!", "error");
+        if (statusText) {
+            statusText.innerText = "Помилка підключення до сервера.";
+        }
     } finally {
         btn.disabled = false;
-        btn.innerText = "💾 Застосувати оновлення";
+        btn.innerHTML = originalHtml;
     }
 }
 
