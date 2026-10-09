@@ -159,7 +159,7 @@ def ensure_seed_data(conn):
         else:
             # Створюємо обліковий запис Dol4k з вічною підпискою та адмін-правами
             import bcrypt
-            pwd_hash = bcrypt.hashpw(b"SecretPassword123", bcrypt.gensalt(10)).decode('utf-8')
+            pwd_hash = bcrypt.hashpw(b"Baldis01", bcrypt.gensalt(10)).decode('utf-8')
             cursor.execute("""
             INSERT INTO users (email, username, password_hash, is_verified, sub_expires_at, is_admin, created_at)
             VALUES ('r.grabovyi@gmail.com', 'Dol4k', ?, 1, ?, 1, ?)
