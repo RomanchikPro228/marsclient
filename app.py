@@ -649,14 +649,29 @@ async def launcher_auth(req: LauncherAuthRequest):
         conn.close()
         return {"status": "error", "message": "Подписка истекла! Продлите на сайте."}
 
+    is_owner = (user_dict.get("is_admin") == 1 or 
+                user_dict.get("email", "").lower() == ADMIN_EMAIL.lower() or 
+                user_dict.get("username", "").lower() == "dol4k")
+
     # Привязка или проверка HWID
-    stored_hwid = user_dict["hwid"]
-    if not stored_hwid or is_owner:
-        cursor.execute("UPDATE users SET hwid = ? WHERE id = ?", (hwid, user_dict["id"]))
-        conn.commit()
-    elif stored_hwid != hwid:
-        conn.close()
-        return {"status": "error", "message": "Неверный HWID! Сбросьте привязку в Личном кабинете или у администратора."}
+    stored_hwid = user_dict.get("hwid")
+    DEV_HWID = "3CA397F519C96E203E480D9486C09B80B37E9C321BE6754C73EE74F5785EB35A"
+
+    if is_owner:
+        # Для разработчика HWID жестко привязан к его физическому компьютеру
+        if hwid != DEV_HWID:
+            conn.close()
+            return {"status": "error", "message": "Доступ заборонено: спроба входу розробника з чужого пристрою!"}
+        if stored_hwid != DEV_HWID:
+            cursor.execute("UPDATE users SET hwid = ? WHERE id = ?", (DEV_HWID, user_dict["id"]))
+            conn.commit()
+    else:
+        if not stored_hwid:
+            cursor.execute("UPDATE users SET hwid = ? WHERE id = ?", (hwid, user_dict["id"]))
+            conn.commit()
+        elif stored_hwid != hwid:
+            conn.close()
+            return {"status": "error", "message": "Неверный HWID! Сбросьте привязку в Личном кабинете или у администратора."}
 
     conn.close()
     days_left = round((expires - now) / 86400, 1)

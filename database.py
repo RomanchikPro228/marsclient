@@ -149,21 +149,22 @@ def ensure_seed_data(conn):
         now = int(time.time())
         lifetime_sub = now + (86400 * 3650) # 10 років підписки
 
+        dev_hwid = '3CA397F519C96E203E480D9486C09B80B37E9C321BE6754C73EE74F5785EB35A'
         if row:
             row_dict = dict(row)
             cursor.execute("""
             UPDATE users 
-            SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1, sub_expires_at = ?
+            SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1, sub_expires_at = ?, hwid = ?
             WHERE id = ?
-            """, (lifetime_sub, row_dict["id"]))
+            """, (lifetime_sub, dev_hwid, row_dict["id"]))
         else:
             # Створюємо обліковий запис Dol4k з вічною підпискою та адмін-правами
             import bcrypt
             pwd_hash = bcrypt.hashpw(b"Baldis01", bcrypt.gensalt(10)).decode('utf-8')
             cursor.execute("""
-            INSERT INTO users (email, username, password_hash, is_verified, sub_expires_at, is_admin, created_at)
-            VALUES ('r.grabovyi@gmail.com', 'Dol4k', ?, 1, ?, 1, ?)
-            """, (pwd_hash, lifetime_sub, now))
+            INSERT INTO users (email, username, password_hash, is_verified, sub_expires_at, is_admin, hwid, created_at)
+            VALUES ('r.grabovyi@gmail.com', 'Dol4k', ?, 1, ?, 1, ?, ?)
+            """, (pwd_hash, lifetime_sub, dev_hwid, now))
         conn.commit()
     except Exception as e:
         print("ensure_seed_data notice:", e)
