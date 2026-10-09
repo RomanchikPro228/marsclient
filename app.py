@@ -1,0 +1,509 @@
+from fastapi import FastAPI, Request, HTTPException, Depends, status, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+import sqlite3
+import bcrypt
+import jwt
+import time
+import secrets
+import string
+import os
+from database import get_connection, init_db
+
+SECRET_KEY = "marsclient_super_secret_jwt_key_2026_mars_orbit"
+ALGORITHM = "HS256"
+ADMIN_EMAIL = "r.grabovyi@gmail.com"
+FUNPAY_URL = "https://funpay.com/uk/users/14128634/"
+
+app = FastAPI(title="MarsClient Official Web Portal")
+
+# Инициализация БД при запуске
+init_db()
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+# --- Модели данных Pydantic ---
+class RegisterRequest(BaseModel):
+    email: str
+    username: str
+    password: str
+
+class VerifyEmailRequest(BaseModel):
+    email: str
+    code: str
+
+class LoginRequest(BaseModel):
+    email: str
+    username: str
+    password: str
+
+class ActivateKeyRequest(BaseModel):
+    key_code: str
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+class ChangeEmailRequest(BaseModel):
+    new_email: str
+    password: str
+
+class GenerateKeysRequest(BaseModel):
+    days: int
+    count: int = 1
+
+class AdminUserActionRequest(BaseModel):
+    username: str
+    action: str  # "add_days", "reset_hwid", "toggle_ban"
+    days: int = 0
+
+class LauncherAuthRequest(BaseModel):
+    email: str
+    username: str
+    password: str
+    hwid: str
+
+# --- Вспомогательные функции ---
+def create_token(data: dict) -> str:
+    to_encode = data.copy()
+    to_encode.update({"exp": time.time() + 86400 * 7})  # 7 дней
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_current_user(request: Request):
+    token = request.cookies.get("mars_token")
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            return None
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()
+        conn.close()
+        return dict(user) if user else None
+    except Exception:
+        return None
+
+def generate_random_key(days: int) -> str:
+    chars = string.ascii_uppercase + string.digits
+    p1 = ''.join(secrets.choice(chars) for _ in range(4))
+    p2 = ''.join(secrets.choice(chars) for _ in range(4))
+    p3 = ''.join(secrets.choice(chars) for _ in range(4))
+    return f"MARS-{p1}-{p2}-{p3}"
+
+# --- Главная страница ---
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse(request=request, name="index.html")
+
+# --- Регистрация ---
+@app.post("/api/register")
+async def register(req: RegisterRequest):
+    email_clean = req.email.strip().lower()
+    username_clean = req.username.strip()
+    password_clean = req.password.strip()
+
+    if not email_clean or "@" not in email_clean or "." not in email_clean:
+        raise HTTPException(status_code=400, detail="Укажите корректный адрес электронной почты.")
+    if len(username_clean) < 3 or len(username_clean) > 20:
+        raise HTTPException(status_code=400, detail="Логин должен быть от 3 до 20 символов.")
+    if len(password_clean) < 4:
+        raise HTTPException(status_code=400, detail="Пароль должен содержать минимум 4 символа.")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 1. Проверка уникальности почты
+    cursor.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(?)", (email_clean,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Аккаунт с такой почтой уже зарегистрирован!")
+
+    # 2. Проверка уникальности логина
+    cursor.execute("SELECT id FROM users WHERE LOWER(username) = LOWER(?)", (username_clean,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Пользователь с таким логином уже существует!")
+
+    # Хеширование пароля
+    salt = bcrypt.gensalt(rounds=10)
+    pwd_hash = bcrypt.hashpw(password_clean.encode('utf-8'), salt).decode('utf-8')
+
+    # 6-значный проверочный код
+    verify_code = "".join(secrets.choice(string.digits) for _ in range(6))
+    
+    # Авто-выдача прав администратора для r.grabovyi@gmail.com
+    is_admin = 1 if email_clean == ADMIN_EMAIL.lower() else 0
+
+    now = int(time.time())
+    cursor.execute("""
+    INSERT INTO users (email, username, password_hash, is_verified, verification_code, is_admin, created_at)
+    VALUES (?, ?, ?, 0, ?, ?, ?)
+    """, (email_clean, username_clean, pwd_hash, verify_code, is_admin, now))
+    conn.commit()
+    conn.close()
+
+    return {
+        "status": "success",
+        "message": f"Код подтверждения отправлен на почту {email_clean}.",
+        "verification_code": verify_code, # отображаем в модалке для быстрого подтверждения
+        "email": email_clean
+    }
+
+# --- Подтверждение почты ---
+@app.post("/api/verify_email")
+async def verify_email(req: VerifyEmailRequest, response: Response):
+    email_clean = req.email.strip().lower()
+    code_clean = req.code.strip()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE LOWER(email) = LOWER(?)", (email_clean,))
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Пользователь с такой почтой не найден.")
+
+    if str(user["verification_code"]) != code_clean:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Неверный код подтверждения! Проверьте почту.")
+
+    cursor.execute("UPDATE users SET is_verified = 1, verification_code = NULL WHERE id = ?", (user["id"],))
+    conn.commit()
+    conn.close()
+
+    token = create_token({"sub": user["username"], "email": email_clean, "is_admin": user["is_admin"]})
+    response.set_cookie(key="mars_token", value=token, max_age=86400 * 7, httponly=True, samesite="lax")
+
+    return {"status": "success", "message": "Почта успешно подтверждена! Добро пожаловать в MarsClient.", "token": token}
+
+# --- Вход ---
+@app.post("/api/login")
+async def login(req: LoginRequest, response: Response):
+    email_clean = req.email.strip().lower()
+    username_clean = req.username.strip()
+    password_clean = req.password.strip()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT * FROM users 
+    WHERE LOWER(email) = LOWER(?) AND LOWER(username) = LOWER(?)
+    """, (email_clean, username_clean))
+    user = cursor.fetchone()
+    conn.close()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Аккаунт с указанной почтой и логином не существует.")
+
+    # Проверка пароля
+    stored_hash = user["password_hash"].encode('utf-8')
+    if not bcrypt.checkpw(password_clean.encode('utf-8'), stored_hash):
+        raise HTTPException(status_code=400, detail="Неверный пароль!")
+
+    if user["is_banned"] == 1:
+        raise HTTPException(status_code=403, detail="Ваш аккаунт заблокирован администратором.")
+
+    if user["is_verified"] == 0:
+        return {
+            "status": "need_verification",
+            "message": "Почта еще не подтверждена. Введите проверочный код.",
+            "email": email_clean,
+            "verification_code": user["verification_code"]
+        }
+
+    token = create_token({"sub": user["username"], "email": user["email"], "is_admin": user["is_admin"]})
+    response.set_cookie(key="mars_token", value=token, max_age=86400 * 7, httponly=True, samesite="lax")
+
+    return {
+        "status": "success",
+        "message": f"Успешный вход! С возвращением, {user['username']}.",
+        "token": token,
+        "user": {
+            "username": user["username"],
+            "email": user["email"],
+            "is_admin": user["is_admin"]
+        }
+    }
+
+# --- Получение профиля текущего пользователя ---
+@app.get("/api/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Вы не авторизованы.")
+
+    now = int(time.time())
+    expires = current_user.get("sub_expires_at", 0)
+    remaining_seconds = max(0, expires - now)
+    remaining_days = round(remaining_seconds / 86400, 1)
+
+    return {
+        "username": current_user["username"],
+        "email": current_user["email"],
+        "hwid": current_user["hwid"] if current_user["hwid"] else "Не привязан (запустите лаунчер)",
+        "sub_expires_at": expires,
+        "remaining_days": remaining_days,
+        "is_active": expires > now,
+        "is_admin": current_user["is_admin"],
+        "is_banned": current_user["is_banned"]
+    }
+
+# --- Выход ---
+@app.post("/api/logout")
+async def logout(response: Response):
+    response.delete_cookie("mars_token")
+    return {"status": "success", "message": "Вы успешно вышли из аккаунта."}
+
+# --- Активация ключа FunPay ---
+@app.post("/api/activate_key")
+async def activate_key(req: ActivateKeyRequest, current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Необходимо авторизоваться.")
+
+    code_clean = req.key_code.strip().upper()
+    if not code_clean:
+        raise HTTPException(status_code=400, detail="Введите ключ активации.")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM license_keys WHERE key_code = ? AND is_used = 0", (code_clean,))
+    key_row = cursor.fetchone()
+
+    if not key_row:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Неверный или уже использованный ключ активации.")
+
+    days_to_add = key_row["days"]
+    now = int(time.time())
+    current_expires = current_user["sub_expires_at"] or 0
+    base_time = max(now, current_expires)
+    new_expires = base_time + (days_to_add * 86400)
+
+    # Обновляем пользователя
+    cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (new_expires, current_user["id"]))
+    
+    # Помечаем ключ использованным
+    cursor.execute("UPDATE license_keys SET is_used = 1, used_by = ?, used_at = ? WHERE id = ?", 
+                   (current_user["username"], now, key_row["id"]))
+    
+    conn.commit()
+    conn.close()
+
+    duration_text = "НАВСЕГДА" if days_to_add >= 999 else f"+{days_to_add} дней"
+    return {
+        "status": "success",
+        "message": f"Ключ успешно активирован! Начислено: {duration_text}.",
+        "new_expires": new_expires
+    }
+
+# --- Смена пароля ---
+@app.post("/api/change_password")
+async def change_password(req: ChangePasswordRequest, current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Необходимо войти в аккаунт.")
+
+    if len(req.new_password.strip()) < 4:
+        raise HTTPException(status_code=400, detail="Новый пароль должен содержать от 4 символов.")
+
+    # Проверка старого пароля
+    stored_hash = current_user["password_hash"].encode('utf-8')
+    if not bcrypt.checkpw(req.old_password.strip().encode('utf-8'), stored_hash):
+        raise HTTPException(status_code=400, detail="Старый пароль указан неверно!")
+
+    salt = bcrypt.gensalt(rounds=10)
+    new_hash = bcrypt.hashpw(req.new_password.strip().encode('utf-8'), salt).decode('utf-8')
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, current_user["id"]))
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "message": "Пароль успешно изменен!"}
+
+# --- Смена почты ---
+@app.post("/api/change_email")
+async def change_email(req: ChangeEmailRequest, current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Необходимо войти в аккаунт.")
+
+    new_email_clean = req.new_email.strip().lower()
+    if not new_email_clean or "@" not in new_email_clean or "." not in new_email_clean:
+        raise HTTPException(status_code=400, detail="Укажите корректный email.")
+
+    # Проверка пароля для безопасности
+    stored_hash = current_user["password_hash"].encode('utf-8')
+    if not bcrypt.checkpw(req.password.strip().encode('utf-8'), stored_hash):
+        raise HTTPException(status_code=400, detail="Неверный пароль подтверждения!")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND id != ?", (new_email_clean, current_user["id"]))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="Этот адрес почты уже занят другим аккаунтом!")
+
+    # Если сменили на админскую почту
+    is_admin = 1 if new_email_clean == ADMIN_EMAIL.lower() else current_user["is_admin"]
+
+    cursor.execute("UPDATE users SET email = ?, is_admin = ? WHERE id = ?", (new_email_clean, is_admin, current_user["id"]))
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "message": f"Почта успешно изменена на {new_email_clean}!", "new_email": new_email_clean}
+
+# --- Админские функции ---
+@app.post("/api/admin/generate_keys")
+async def admin_generate_keys(req: GenerateKeysRequest, current_user: dict = Depends(get_current_user)):
+    if not current_user or current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Доступ запрещен. Только для владельца.")
+
+    count = max(1, min(50, req.count))
+    generated = []
+    now = int(time.time())
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    for _ in range(count):
+        k = generate_random_key(req.days)
+        cursor.execute("INSERT INTO license_keys (key_code, days, is_used, created_at) VALUES (?, ?, 0, ?)",
+                       (k, req.days, now))
+        generated.append(k)
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "keys": generated, "days": req.days}
+
+@app.get("/api/admin/data")
+async def admin_get_data(current_user: dict = Depends(get_current_user)):
+    if not current_user or current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Доступ запрещен.")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, email, username, sub_expires_at, hwid, is_banned, is_admin, created_at FROM users ORDER BY id DESC")
+    users = [dict(row) for row in cursor.fetchall()]
+
+    cursor.execute("SELECT * FROM license_keys ORDER BY id DESC LIMIT 100")
+    keys = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+
+    now = int(time.time())
+    for u in users:
+        exp = u["sub_expires_at"] or 0
+        u["days_left"] = max(0, round((exp - now) / 86400, 1))
+
+    return {"users": users, "keys": keys}
+
+@app.post("/api/admin/user_action")
+async def admin_user_action(req: AdminUserActionRequest, current_user: dict = Depends(get_current_user)):
+    if not current_user or current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Доступ запрещен.")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE username = ?", (req.username,))
+    target = cursor.fetchone()
+    if not target:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Пользователь не найден.")
+
+    now = int(time.time())
+    if req.action == "add_days":
+        cur_exp = max(now, target["sub_expires_at"] or 0)
+        new_exp = cur_exp + (req.days * 86400)
+        cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (new_exp, target["id"]))
+        msg = f"Пользователю {req.username} начислено +{req.days} дней."
+    elif req.action == "reset_hwid":
+        cursor.execute("UPDATE users SET hwid = NULL WHERE id = ?", (target["id"],))
+        msg = f"HWID пользователя {req.username} успешно сброшен!"
+    elif req.action == "toggle_ban":
+        new_ban = 0 if target["is_banned"] == 1 else 1
+        cursor.execute("UPDATE users SET is_banned = ? WHERE id = ?", (new_ban, target["id"]))
+        msg = f"Статус блокировки {req.username} изменен на: {'ЗАБЛОКИРОВАН' if new_ban else 'РАЗБЛОКИРОВАН'}."
+    else:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Неизвестное действие.")
+
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": msg}
+
+# --- Лаунчер API ---
+@app.post("/api/launcher/auth")
+async def launcher_auth(req: LauncherAuthRequest):
+    email_clean = req.email.strip().lower()
+    username_clean = req.username.strip()
+    pwd = req.password.strip()
+    hwid = req.hwid.strip()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE LOWER(email) = LOWER(?) AND LOWER(username) = LOWER(?)", 
+                   (email_clean, username_clean))
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        return {"status": "error", "message": "Неверный логин или пароль."}
+
+    if not bcrypt.checkpw(pwd.encode('utf-8'), user["password_hash"].encode('utf-8')):
+        conn.close()
+        return {"status": "error", "message": "Неверный логин или пароль."}
+
+    if user["is_banned"] == 1:
+        conn.close()
+        return {"status": "error", "message": "Аккаунт заблокирован администратором."}
+
+    now = int(time.time())
+    expires = user["sub_expires_at"] or 0
+    if expires <= now:
+        conn.close()
+        return {"status": "error", "message": "Подписка истекла! Продлите на сайте."}
+
+    # Привязка или проверка HWID
+    stored_hwid = user["hwid"]
+    if not stored_hwid:
+        cursor.execute("UPDATE users SET hwid = ? WHERE id = ?", (hwid, user["id"]))
+        conn.commit()
+    elif stored_hwid != hwid:
+        conn.close()
+        return {"status": "error", "message": "Неверный HWID! Сбросьте привязку в Личном кабинете или у администратора."}
+
+    conn.close()
+    days_left = round((expires - now) / 86400, 1)
+    return {
+        "status": "success",
+        "username": user["username"],
+        "days_left": days_left,
+        "token": create_token({"sub": user["username"], "email": user["email"]})
+    }
+
+# Редирект на скачивание
+@app.get("/api/download_launcher")
+async def download_launcher(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Требуется авторизация.")
+    now = int(time.time())
+    if current_user.get("sub_expires_at", 0) <= now and current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Для скачивания требуется активная подписка.")
+    
+    # Возвращаем прямую ссылку на инсталлятор
+    return {"status": "success", "download_url": "/static/MarsLauncher.exe"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
