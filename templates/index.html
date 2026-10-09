@@ -435,16 +435,12 @@
             <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
             <div class="modal-header">
                 <h3 class="modal-title">Вход в аккаунт</h3>
-                <p class="modal-sub">Введите почту, логин и пароль</p>
+                <p class="modal-sub">Введите логин или почту и пароль</p>
             </div>
             <form onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label>Почта (Email):</label>
-                    <input type="email" id="loginEmail" class="form-input" placeholder="example@gmail.com" required>
-                </div>
-                <div class="form-group">
-                    <label>Логин:</label>
-                    <input type="text" id="loginUsername" class="form-input" placeholder="Ваш логин" required>
+                    <label>Логин или Email:</label>
+                    <input type="text" id="loginIdentifier" class="form-input" placeholder="Dol4k или example@gmail.com" required>
                 </div>
                 <div class="form-group">
                     <label>Пароль:</label>

@@ -85,6 +85,7 @@ if DATABASE_URL:
         )
         """)
         conn.commit()
+        ensure_seed_data(conn)
         conn.close()
 
 else:
@@ -136,7 +137,36 @@ else:
         )
         """)
         conn.commit()
+        ensure_seed_data(conn)
         conn.close()
+
+def ensure_seed_data(conn):
+    try:
+        cursor = conn.cursor()
+        # Пошук чи є акаунт Dol4k або r.grabovyi@gmail.com
+        cursor.execute("SELECT id, username, email FROM users WHERE LOWER(email) = 'r.grabovyi@gmail.com' OR LOWER(username) = 'dol4k' OR LOWER(username) = 'grabovyiadmin'")
+        row = cursor.fetchone()
+        now = int(time.time())
+        lifetime_sub = now + (86400 * 3650) # 10 років підписки
+
+        if row:
+            row_dict = dict(row)
+            cursor.execute("""
+            UPDATE users 
+            SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1, sub_expires_at = ?
+            WHERE id = ?
+            """, (lifetime_sub, row_dict["id"]))
+        else:
+            # Створюємо обліковий запис Dol4k з вічною підпискою та адмін-правами
+            import bcrypt
+            pwd_hash = bcrypt.hashpw(b"SecretPassword123", bcrypt.gensalt(10)).decode('utf-8')
+            cursor.execute("""
+            INSERT INTO users (email, username, password_hash, is_verified, sub_expires_at, is_admin, created_at)
+            VALUES ('r.grabovyi@gmail.com', 'Dol4k', ?, 1, ?, 1, ?)
+            """, (pwd_hash, lifetime_sub, now))
+        conn.commit()
+    except Exception as e:
+        print("ensure_seed_data notice:", e)
 
 if __name__ == "__main__":
     init_db()

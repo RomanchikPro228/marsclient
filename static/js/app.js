@@ -331,13 +331,15 @@ async function handleVerifyEmail(e) {
 // ==========================================
 async function handleLogin(e) {
     e.preventDefault();
-    const email = document.getElementById("loginEmail").value.trim();
-    const username = document.getElementById("loginUsername").value.trim();
+    const identInput = document.getElementById("loginIdentifier");
+    const emailInput = document.getElementById("loginEmail");
+    const userInput = document.getElementById("loginUsername");
+    const ident = (identInput ? identInput.value : (emailInput ? emailInput.value : (userInput ? userInput.value : ""))).trim();
     const password = document.getElementById("loginPassword").value.trim();
     const btn = document.getElementById("loginSubmitBtn");
 
-    if (!email || !username || !password) {
-        showToast("Введите email, логин и пароль!", "warning");
+    if (!ident || !password) {
+        showToast("Введите логин или почту и пароль!", "warning");
         return;
     }
 
@@ -348,7 +350,7 @@ async function handleLogin(e) {
         const res = await fetch("/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, username, password })
+            body: JSON.stringify({ login: ident, email: ident, username: ident, password: password })
         });
         const data = await res.json();
 
