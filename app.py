@@ -149,37 +149,16 @@ async def register(req: RegisterRequest, response: Response):
     pwd_hash = bcrypt.hashpw(password_clean.encode('utf-8'), salt).decode('utf-8')
 
     # Проверка существования аккаунта
-    cursor.execute("SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?)", (email_clean, username_clean))
+    cursor.execute("SELECT id, email, username FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?)", (email_clean, username_clean))
     existing = cursor.fetchone()
 
     if existing:
+        conn.close()
         ex_dict = dict(existing)
-        # Если это владелец/админ (Dol4k / r.grabovyi@gmail.com):
-        # Обновляем пароль и логин, выдаем вечную подписку и права админа, и сразу авторизуем!
-        if is_owner or ex_dict["email"].lower() == ADMIN_EMAIL.lower() or ex_dict["username"].lower() == "dol4k":
-            cursor.execute("""
-            UPDATE users 
-            SET username = ?, email = ?, password_hash = ?, is_admin = 1, is_verified = 1, sub_expires_at = ?
-            WHERE id = ?
-            """, (username_clean, email_clean, pwd_hash, lifetime_sub, ex_dict["id"]))
-            conn.commit()
-            conn.close()
-
-            token = create_token({"sub": username_clean, "email": email_clean, "is_admin": 1})
-            response.set_cookie(key="mars_token", value=token, max_age=86400 * 30, httponly=True, samesite="lax")
-            return {
-                "status": "success",
-                "message": f"Добро пожаловать, {username_clean}! Аккаунт обновлен и активирован.",
-                "token": token,
-                "user": {
-                    "username": username_clean,
-                    "email": email_clean,
-                    "is_admin": 1
-                }
-            }
+        if ex_dict["email"].lower() == email_clean:
+            raise HTTPException(status_code=400, detail="Аккаунт с такой почтой уже зарегистрирован! Нажмите «Войти».")
         else:
-            conn.close()
-            raise HTTPException(status_code=400, detail="Аккаунт с такой почтой или логином уже зарегистрирован! Нажмите «Войти».")
+            raise HTTPException(status_code=400, detail="Пользователь с таким логином уже существует! Нажмите «Войти».")
 
     cursor.execute("""
     INSERT INTO users (email, username, password_hash, is_verified, verification_code, is_admin, sub_expires_at, created_at)
@@ -253,23 +232,13 @@ async def login(req: LoginRequest, response: Response):
 
     user_dict = dict(user)
 
-    # Проверка пароля
+    # Строгая проверка пароля
     stored_hash = user_dict["password_hash"].encode('utf-8')
     pwd_match = False
     try:
         pwd_match = bcrypt.checkpw(password_clean.encode('utf-8'), stored_hash)
     except Exception:
         pwd_match = False
-
-    is_owner = (user_dict.get("is_admin") == 1 or user_dict["email"].lower() == ADMIN_EMAIL.lower() or user_dict["username"].lower() == "dol4k")
-
-    # Если это владелец, авто-синхронизируем пароль на введенный
-    if not pwd_match and is_owner:
-        salt = bcrypt.gensalt(rounds=10)
-        new_hash = bcrypt.hashpw(password_clean.encode('utf-8'), salt).decode('utf-8')
-        cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_dict["id"]))
-        conn.commit()
-        pwd_match = True
 
     if not pwd_match:
         conn.close()
@@ -661,15 +630,6 @@ async def launcher_auth(req: LauncherAuthRequest):
         pwd_match = bcrypt.checkpw(pwd.encode('utf-8'), stored_hash)
     except Exception:
         pwd_match = False
-
-    is_owner = (user_dict.get("is_admin") == 1 or user_dict["email"].lower() == ADMIN_EMAIL.lower() or user_dict["username"].lower() == "dol4k")
-
-    if not pwd_match and is_owner:
-        salt = bcrypt.gensalt(rounds=10)
-        new_hash = bcrypt.hashpw(pwd.encode('utf-8'), salt).decode('utf-8')
-        cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_dict["id"]))
-        conn.commit()
-        pwd_match = True
 
     if not pwd_match:
         conn.close()
