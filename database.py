@@ -74,6 +74,16 @@ if DATABASE_URL:
             created_at BIGINT NOT NULL
         )
         """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS client_releases (
+            id SERIAL PRIMARY KEY,
+            version TEXT NOT NULL,
+            download_url TEXT NOT NULL,
+            changelog TEXT DEFAULT '',
+            is_public INTEGER DEFAULT 0,
+            created_at BIGINT NOT NULL
+        )
+        """)
         conn.commit()
         conn.close()
 
@@ -112,6 +122,16 @@ else:
             is_used INTEGER DEFAULT 0,
             used_by TEXT DEFAULT NULL,
             used_at INTEGER DEFAULT NULL,
+            created_at INTEGER NOT NULL
+        )
+        """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS client_releases (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            version TEXT NOT NULL,
+            download_url TEXT NOT NULL,
+            changelog TEXT DEFAULT '',
+            is_public INTEGER DEFAULT 0,
             created_at INTEGER NOT NULL
         )
         """)

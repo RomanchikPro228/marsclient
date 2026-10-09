@@ -615,6 +615,71 @@ async function loadAdminData() {
     } catch (err) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading-td error">Сбой подключения</td></tr>';
     }
+
+    // Завантажуємо статус релізів
+    loadAdminReleases();
+}
+
+// Завантаження статусу версій оновлень
+async function loadAdminReleases() {
+    try {
+        const res = await fetch("/api/admin/releases");
+        if (res.ok) {
+            const data = await res.json();
+            const badge = document.getElementById("activeReleaseBadge");
+            if (data.releases && data.releases.length > 0) {
+                const latestPublic = data.releases.find(r => r.is_public === 1);
+                const latestDev = data.releases.find(r => r.is_public === 0);
+                if (badge) {
+                    if (latestPublic) {
+                        badge.innerText = `Стабільна версія: v${latestPublic.version}`;
+                    } else if (latestDev) {
+                        badge.innerText = `У тесті: v${latestDev.version} (Dev)`;
+                    }
+                }
+            }
+        }
+    } catch (e) {}
+}
+
+// Публікація оновлення клієнта
+async function handlePublishRelease(e) {
+    e.preventDefault();
+    const version = document.getElementById("relVersion").value.trim();
+    const download_url = document.getElementById("relUrl").value.trim();
+    const changelog = document.getElementById("relChangelog").value.trim();
+    const targetRadio = document.querySelector('input[name="relTarget"]:checked');
+    const is_public = targetRadio ? targetRadio.value === "public" : false;
+    const btn = document.getElementById("publishReleaseBtn");
+
+    if (!version || !download_url) {
+        showToast("Вкажіть номер версії та посилання на файл!", "warning");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Збереження...";
+
+    try {
+        const res = await fetch("/api/admin/publish_release", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ version, download_url, changelog, is_public })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast(data.message, "success");
+            loadAdminReleases();
+        } else {
+            showToast(data.detail || "Помилка збереження оновлення", "error");
+        }
+    } catch (err) {
+        showToast("Помилка зв'язку з сервером!", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "💾 Застосувати оновлення";
+    }
 }
 
 // Действия администратора над пользователем

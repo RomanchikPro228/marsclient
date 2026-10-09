@@ -67,6 +67,17 @@ class LauncherAuthRequest(BaseModel):
     password: str
     hwid: str
 
+class PublishReleaseRequest(BaseModel):
+    version: str
+    download_url: str
+    changelog: str = ""
+    is_public: bool = False
+
+class CheckUpdateRequest(BaseModel):
+    current_version: str
+    username: str | None = None
+    email: str | None = None
+
 # --- Вспомогательные функции ---
 def create_token(data: dict) -> str:
     to_encode = data.copy()
@@ -438,6 +449,88 @@ async def admin_user_action(req: AdminUserActionRequest, current_user: dict = De
     conn.commit()
     conn.close()
     return {"status": "success", "message": msg}
+
+# --- Керування оновленнями клієнта (Auto-Updater) ---
+@app.post("/api/admin/publish_release")
+async def publish_release(req: PublishReleaseRequest, current_user: dict = Depends(get_current_user)):
+    if not current_user or current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Доступ заборонено. Тільки для власника.")
+
+    ver_clean = req.version.strip()
+    url_clean = req.download_url.strip()
+    if not ver_clean or not url_clean:
+        raise HTTPException(status_code=400, detail="Вкажіть номер версії та посилання на файл.")
+
+    now = int(time.time())
+    is_pub_int = 1 if req.is_public else 0
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO client_releases (version, download_url, changelog, is_public, created_at)
+    VALUES (?, ?, ?, ?, ?)
+    """, (ver_clean, url_clean, req.changelog.strip(), is_pub_int, now))
+    conn.commit()
+    conn.close()
+
+    status_str = "для ВСІХ гравців" if req.is_public else "у режимі ТЕСТУВАННЯ (тільки для вас)"
+    return {
+        "status": "success",
+        "message": f"Оновлення v{ver_clean} опубліковано {status_str}!",
+        "version": ver_clean,
+        "is_public": req.is_public
+    }
+
+@app.get("/api/admin/releases")
+async def admin_get_releases(current_user: dict = Depends(get_current_user)):
+    if not current_user or current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Доступ заборонено.")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM client_releases ORDER BY id DESC LIMIT 10")
+    releases = cursor.fetchall()
+    conn.close()
+
+    return {"status": "success", "releases": releases}
+
+@app.post("/api/launcher/check_update")
+async def launcher_check_update(req: CheckUpdateRequest):
+    cur_ver = req.current_version.strip()
+    user_email = (req.email or "").strip().lower()
+    username = (req.username or "").strip().lower()
+
+    # Перевірка чи це власник (Dev / Test)
+    is_owner = False
+    if user_email == ADMIN_EMAIL.lower() or username in ["dol4k", "grabovyiadmin"]:
+        is_owner = True
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    if is_owner:
+        # Для власника видаємо найновішу версію (навіть тестову!)
+        cursor.execute("SELECT * FROM client_releases ORDER BY id DESC LIMIT 1")
+    else:
+        # Для звичайних гравців видаємо ТІЛЬКИ версії, схвалені для всіх
+        cursor.execute("SELECT * FROM client_releases WHERE is_public = 1 ORDER BY id DESC LIMIT 1")
+
+    latest = cursor.fetchone()
+    conn.close()
+
+    if not latest:
+        return {"update_available": False, "version": cur_ver}
+
+    if latest["version"] != cur_ver:
+        return {
+            "update_available": True,
+            "version": latest["version"],
+            "download_url": latest["download_url"],
+            "changelog": latest["changelog"],
+            "is_dev_build": (latest["is_public"] == 0)
+        }
+
+    return {"update_available": False, "version": cur_ver}
 
 # --- Лаунчер API ---
 @app.post("/api/launcher/auth")

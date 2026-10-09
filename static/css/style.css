@@ -1044,4 +1044,42 @@ body {
     .nav-links { display: none; }
     .gen-controls { flex-direction: column; align-items: stretch; }
     .key-activate-form .input-group { flex-direction: column; }
+    .form-row-grid { grid-template-columns: 1fr; }
+}
+
+.form-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+}
+
+.form-textarea {
+    resize: vertical;
+    font-family: inherit;
+}
+
+.release-mode-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 18px 0;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+    accent-color: var(--primary);
+    width: 18px;
+    height: 18px;
 }

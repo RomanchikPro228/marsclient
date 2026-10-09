@@ -296,6 +296,50 @@
                     </div>
                 </div>
 
+                <!-- Блок керування оновленнями клієнта (Auto-Updater) -->
+                <div class="dash-card full-width admin-card">
+                    <div class="table-header">
+                        <h3 class="card-title">🚀 Керування оновленнями клієнта (Auto-Updater)</h3>
+                        <span class="badge-featured" id="activeReleaseBadge">Стабільна версія: v1.0.0</span>
+                    </div>
+                    <p class="card-desc">
+                        Публікуйте оновлення для MarsClient. Ви можете ввімкнути <strong>«Тестовий режим (тільки для мене)»</strong>, щоб перевірити оновлення на своєму комп'ютері, а коли все протестовано — вибрати <strong>«Опублікувати для ВСІХ гравців»</strong>!
+                    </p>
+
+                    <form class="update-publish-form" onsubmit="handlePublishRelease(event)">
+                        <div class="form-row-grid">
+                            <div class="form-group">
+                                <label>Номер нової версії:</label>
+                                <input type="text" id="relVersion" class="form-input" placeholder="Наприклад: 1.0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Пряме посилання на файл оновлення (.jar або .exe):</label>
+                                <input type="url" id="relUrl" class="form-input" placeholder="https://.../MarsClient.jar" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Список змін (ChangeLog):</label>
+                            <textarea id="relChangelog" class="form-input form-textarea" rows="2" placeholder="Опис оновлення (наприклад: Виправлено TriggerBot, оновлено обходи FunTime)"></textarea>
+                        </div>
+
+                        <div class="release-mode-box">
+                            <label class="radio-label">
+                                <input type="radio" name="relTarget" value="dev" checked>
+                                <span>🛠️ <strong>Тестовий режим (тільки для мене)</strong> — завантажиться лише на ваш ПК для перевірки перед релізом</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="relTarget" value="public">
+                                <span>🌐 <strong>Опублікувати для ВСІХ гравців</strong> — оновиться у кожного гравця при перезапуску лаунчера!</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg" id="publishReleaseBtn">
+                            💾 Застосувати оновлення
+                        </button>
+                    </form>
+                </div>
+
                 <!-- Таблица пользователей -->
                 <div class="dash-card full-width admin-card">
                     <div class="table-header">
