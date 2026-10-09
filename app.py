@@ -160,11 +160,15 @@ async def register(req: RegisterRequest, response: Response):
         else:
             raise HTTPException(status_code=400, detail="Пользователь с таким логином уже существует! Нажмите «Войти».")
 
-    cursor.execute("""
-    INSERT INTO users (email, username, password_hash, is_verified, verification_code, is_admin, sub_expires_at, created_at)
-    VALUES (?, ?, ?, 1, NULL, ?, ?, ?)
-    """, (email_clean, username_clean, pwd_hash, is_admin, lifetime_sub, now))
-    conn.commit()
+    try:
+        cursor.execute("""
+        INSERT INTO users (email, username, password_hash, is_verified, verification_code, is_admin, sub_expires_at, created_at)
+        VALUES (?, ?, ?, 1, NULL, ?, ?, ?)
+        """, (email_clean, username_clean, pwd_hash, is_admin, lifetime_sub, now))
+        conn.commit()
+    except Exception:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Пользователь с таким логином или почтой уже существует! Нажмите «Войти».")
     conn.close()
 
     token = create_token({"sub": username_clean, "email": email_clean, "is_admin": is_admin})
