@@ -563,6 +563,22 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
+.plan-desc-custom {
+    margin: 28px 0 36px 0;
+    padding: 18px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.plan-desc-custom p {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
 .info-banner {
     display: flex;
     align-items: center;

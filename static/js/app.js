@@ -271,23 +271,9 @@ async function handleRegister(e) {
 
         if (res.ok) {
             closeModal("registerModal");
-            
-            // Настройка модалки кода подтверждения
-            document.getElementById("verifyEmailHidden").value = data.email;
-            document.getElementById("verifyEmailDisplay").innerText = data.email;
-
-            // Отображаем код (для быстрого тестирования и в случае отсутствия SMTP)
-            if (data.verification_code) {
-                const demoBox = document.getElementById("codeDemoBox");
-                const demoSpan = document.getElementById("demoCodeSpan");
-                if (demoBox && demoSpan) {
-                    demoSpan.innerText = data.verification_code;
-                    demoBox.style.display = "block";
-                }
-            }
-
-            openModal("verifyModal");
             showToast(data.message, "success");
+            await checkAuth();
+            switchView("cabinet");
         } else {
             showToast(data.detail || "Ошибка регистрации", "error");
         }
@@ -367,28 +353,10 @@ async function handleLogin(e) {
         const data = await res.json();
 
         if (res.ok) {
-            if (data.status === "need_verification") {
-                closeModal("loginModal");
-                document.getElementById("verifyEmailHidden").value = data.email;
-                document.getElementById("verifyEmailDisplay").innerText = data.email;
-
-                if (data.verification_code) {
-                    const demoBox = document.getElementById("codeDemoBox");
-                    const demoSpan = document.getElementById("demoCodeSpan");
-                    if (demoBox && demoSpan) {
-                        demoSpan.innerText = data.verification_code;
-                        demoBox.style.display = "block";
-                    }
-                }
-
-                openModal("verifyModal");
-                showToast(data.message, "warning");
-            } else {
-                closeModal("loginModal");
-                showToast(data.message, "success");
-                await checkAuth();
-                switchView("cabinet");
-            }
+            closeModal("loginModal");
+            showToast(data.message, "success");
+            await checkAuth();
+            switchView("cabinet");
         } else {
             showToast(data.detail || "Ошибка входа в аккаунт", "error");
         }

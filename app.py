@@ -110,7 +110,7 @@ async def read_root(request: Request):
 
 # --- Регистрация ---
 @app.post("/api/register")
-async def register(req: RegisterRequest):
+async def register(req: RegisterRequest, response: Response):
     email_clean = req.email.strip().lower()
     username_clean = req.username.strip()
     password_clean = req.password.strip()
@@ -141,25 +141,29 @@ async def register(req: RegisterRequest):
     salt = bcrypt.gensalt(rounds=10)
     pwd_hash = bcrypt.hashpw(password_clean.encode('utf-8'), salt).decode('utf-8')
 
-    # 6-значный проверочный код
-    verify_code = "".join(secrets.choice(string.digits) for _ in range(6))
-    
     # Авто-выдача прав администратора для r.grabovyi@gmail.com
     is_admin = 1 if email_clean == ADMIN_EMAIL.lower() else 0
 
     now = int(time.time())
     cursor.execute("""
     INSERT INTO users (email, username, password_hash, is_verified, verification_code, is_admin, created_at)
-    VALUES (?, ?, ?, 0, ?, ?, ?)
-    """, (email_clean, username_clean, pwd_hash, verify_code, is_admin, now))
+    VALUES (?, ?, ?, 1, NULL, ?, ?)
+    """, (email_clean, username_clean, pwd_hash, is_admin, now))
     conn.commit()
     conn.close()
 
+    token = create_token({"sub": username_clean, "email": email_clean, "is_admin": is_admin})
+    response.set_cookie(key="mars_token", value=token, max_age=86400 * 7, httponly=True, samesite="lax")
+
     return {
         "status": "success",
-        "message": f"Код подтверждения отправлен на почту {email_clean}.",
-        "verification_code": verify_code, # отображаем в модалке для быстрого подтверждения
-        "email": email_clean
+        "message": f"Регистрация успешна! Добро пожаловать, {username_clean}.",
+        "token": token,
+        "user": {
+            "username": username_clean,
+            "email": email_clean,
+            "is_admin": is_admin
+        }
     }
 
 # --- Подтверждение почты ---
@@ -217,13 +221,6 @@ async def login(req: LoginRequest, response: Response):
     if user["is_banned"] == 1:
         raise HTTPException(status_code=403, detail="Ваш аккаунт заблокирован администратором.")
 
-    if user["is_verified"] == 0:
-        return {
-            "status": "need_verification",
-            "message": "Почта еще не подтверждена. Введите проверочный код.",
-            "email": email_clean,
-            "verification_code": user["verification_code"]
-        }
 
     token = create_token({"sub": user["username"], "email": user["email"], "is_admin": user["is_admin"]})
     response.set_cookie(key="mars_token", value=token, max_age=86400 * 7, httponly=True, samesite="lax")
