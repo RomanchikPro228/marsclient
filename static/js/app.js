@@ -542,6 +542,48 @@ async function downloadSetup() {
     }
 }
 
+async function downloadManualWithGuide() {
+    try {
+        const res = await fetch("/api/download_manual", { method: "GET" });
+        if (res.ok) {
+            showToast("Завантаження архіву MarsClient_Manual.zip почалося!", "success");
+            const blob = await res.blob();
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "MarsClient_Manual.zip";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            // Автоматически подставляем данные в подсказку лицензии
+            const hint = document.getElementById("guideLicenseHint");
+            if (hint && currentUser) {
+                hint.innerText = `${currentUser.email}:${currentUser.username}:ВАШ_ПАРОЛЬ`;
+            }
+
+            // Открываем модалку с детальной инструкцией прямо на экране
+            openModal("manualInstructionModal");
+        } else {
+            const data = await res.json().catch(() => ({}));
+            showToast(data.detail || "Для завантаження потрібна активна підписка!", "error");
+        }
+    } catch (err) {
+        showToast("Помилка завантаження архіву!", "error");
+    }
+}
+
+function copyText(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("Шлях скопійовано!", "success");
+        }).catch(() => {
+            prompt("Скопіюйте цей шлях:", text);
+        });
+    } else {
+        prompt("Скопіюйте цей шлях:", text);
+    }
+}
+
 async function handleUserResetHwid() {
     if (!confirm("Ви дійсно хочете скинути прив'язку HWID? При наступному запуску чит автоматично прив'яжеться до вашого поточного ПК.")) {
         return;

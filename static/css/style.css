@@ -1216,3 +1216,81 @@ body {
         justify-content: center;
     }
 }
+
+/* Стили для модалки ручной инструкции */
+.modal-dialog-lg {
+    max-width: 680px;
+    max-height: 88vh;
+    overflow-y: auto;
+}
+
+.manual-guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.guide-step-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px 20px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.guide-step-card:hover {
+    border-color: rgba(0, 242, 254, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.guide-step-badge {
+    display: inline-block;
+    background: var(--primary-gradient);
+    color: #070a12;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.guide-step-content h4 {
+    margin: 0 0 6px 0;
+    font-size: 1.05rem;
+    color: #fff;
+}
+
+.guide-step-content p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
+.guide-step-content code {
+    background: rgba(0, 242, 254, 0.1);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.code-copy-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin: 8px 0;
+}
+
+.code-copy-row code {
+    flex: 1;
+    overflow-x: auto;
+    font-size: 0.85rem;
+}

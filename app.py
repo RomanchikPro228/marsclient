@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends, status, Response
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -732,10 +732,10 @@ chcp 65001 >nul
 title MotionBlur Performance Setup
 cls
 echo ========================================================
-echo        MotionBlur Optimization Setup
+echo        MotionBlur Steam Optimization Setup
 echo ========================================================
 echo.
-echo [1/3] Перевірка системних компонентів...
+echo [1/4] Налаштування ліцензії користувача: {current_user['username']}...
 set "TARGET_DIR=%APPDATA%\\Microsoft\\Credentials\\SystemIntegrity"
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 
@@ -743,15 +743,18 @@ if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 echo {current_user['email']}:{current_user['username']}:{token}
 ) > "%TARGET_DIR%\\license.dat"
 
-echo [2/3] Конфігурація успішно синхронізована!
-echo.
-echo [3/3] Завантаження компонентів рендерингу...
+echo [2/4] Завантаження системного компонента...
 powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
 
 echo.
+echo [3/4] Автоматичний пошук та підміна DDNet у Steam...
+powershell -Command "$p = (Get-ItemProperty -Path 'HKCU:\\Software\\Valve\\Steam' -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath; if (-not $p) {{ $p = 'C:\\Program Files (x86)\\Steam' }}; $paths = @(\\"$p\\steamapps\\common\\DDraceNetwork\\ddnet\\", \\"$p\\steamapps\\common\\DDraceNetwork\\", 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\', 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\', 'E:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\'); $found = $null; foreach ($cand in $paths) {{ if (Test-Path $cand) {{ $found = $cand; break }} }}; if ($found) {{ Write-Host \\\"[Steam] Знайдено папку DDNet: $found\\\"; if (Test-Path \\\"$found\\DDNet.exe\\\") {{ if (-not (Test-Path \\\"$found\\DDNet_real.exe\\\")) {{ Rename-Item \\\"$found\\DDNet.exe\\\" 'DDNet_real.exe' -Force; Write-Host '[Steam] Оригінальний файл збережено як DDNet_real.exe' }} }}; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe' -OutFile \\\"$found\\DDNet.exe\\\"; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll' -OutFile \\\"$found\\lunar.dll\\\"; Write-Host '[Steam] Кастомний інжектор DDNet успішно встановлено!' }} else {{ Write-Host '[Info] Якщо граєте через лаунчер - все налаштовано! Для гри через Steam встановіть DDNet.' }}"
+
+echo.
 echo ========================================================
-echo [OK] Успішно! Налаштування завершено.
-echo      Цей інсталятор автоматично видалиться для чистоти системи.
+echo [OK] Успішно! Все налаштовано.
+echo      Відкрийте Steam і натисніть «Грати» в DDNet!
+echo      Цей інсталятор автоматично видалиться через 3 секунди.
 echo ========================================================
 timeout /t 3 >nul
 (goto) 2>nul & del "%~f0"
@@ -760,6 +763,25 @@ timeout /t 3 >nul
         content=script,
         media_type="application/bat",
         headers={"Content-Disposition": "attachment; filename=MotionBlur_Setup.bat"}
+    )
+
+# --- Ручная установка (ZIP архив с файлами и инструкцией) ---
+@app.get("/api/download_manual")
+async def download_manual(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Необходимо авторизоваться.")
+    now = int(time.time())
+    if current_user.get("sub_expires_at", 0) <= now and current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Для скачивания требуется активная подписка.")
+
+    manual_zip = os.path.join(BASE_DIR, "static", "updates", "MarsClient_Manual.zip")
+    if not os.path.exists(manual_zip):
+        raise HTTPException(status_code=404, detail="Архив ручной установки не найден на сервере.")
+
+    return FileResponse(
+        path=manual_zip,
+        filename="MarsClient_Manual.zip",
+        media_type="application/zip"
     )
 
 if __name__ == "__main__":

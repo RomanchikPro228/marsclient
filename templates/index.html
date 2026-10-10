@@ -234,11 +234,11 @@
                         <div class="download-box" style="display: flex; flex-direction: column; gap: 8px;">
                             <button class="btn btn-primary btn-block btn-lg" id="downloadSetupBtn" onclick="downloadSetup()">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                ⚡ Авто-активатор (1-клик .BAT)
+                                ⚡ Авто-установка Steam DDNet (1-клик .BAT)
                             </button>
-                            <button class="btn btn-secondary btn-block" id="downloadLauncherBtn" onclick="downloadLauncher()">
+                            <button class="btn btn-secondary btn-block" id="downloadManualBtn" onclick="downloadManualWithGuide()">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                Скачать чистый MarsClient (.JAR)
+                                📦 Ручная установка (.ZIP архив + Инструкция)
                             </button>
                             <span class="download-hint" id="downloadHint">Доступно при активной подписке</span>
                         </div>
@@ -512,6 +512,72 @@
             <div class="confirm-buttons">
                 <button class="btn btn-outline" onclick="closeModal('logoutConfirmModal')">Нет, остаться</button>
                 <button class="btn btn-danger" onclick="executeLogout()">Да, выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка: Детальная инструкция ручной установки -->
+    <div class="modal" id="manualInstructionModal">
+        <div class="modal-dialog modal-dialog-lg">
+            <button class="modal-close" onclick="closeModal('manualInstructionModal')">&times;</button>
+            <div class="modal-header">
+                <h3 class="modal-title">📦 Повна інструкція ручного встановлення (Steam DDNet)</h3>
+                <p class="modal-sub">Архів <b>MarsClient_Manual.zip</b> завантажується. Дотримуйтесь 4 простих кроків:</p>
+            </div>
+            
+            <div class="manual-guide-steps">
+                <!-- Крок 1 -->
+                <div class="guide-step-card">
+                    <div class="guide-step-badge">КРОК 1</div>
+                    <div class="guide-step-content">
+                        <h4>🎮 Встановіть безкоштовний DDNet у Steam</h4>
+                        <p>1. Відкрийте <b>Steam</b>, знайдіть гру <b>DDraceNetwork</b> (DDNet) та встановіть її (важить ~30 МБ).</p>
+                        <p>2. У бібліотеці Steam натисніть правою кнопкою миші на DDNet ➔ <b>Властивості...</b> ➔ <b>Встановлені файли</b> ➔ <b>Огляд... (Browse)</b>.</p>
+                        <p>3. Відкриється папка з грою. Перейдіть усередину підпапки <code>ddnet</code>.</p>
+                    </div>
+                </div>
+
+                <!-- Крок 2 -->
+                <div class="guide-step-card">
+                    <div class="guide-step-badge">КРОК 2</div>
+                    <div class="guide-step-content">
+                        <h4>🔄 Заміна файлів у папці DDNet</h4>
+                        <p>1. У папці <code>ddnet</code> знайдіть оригінальний <b>DDNet.exe</b> та перейменуйте його на: <b style="color: #4ade80;">DDNet_real.exe</b></p>
+                        <p>2. Скопіюйте з завантаженого ZIP-архіву наш файл <b>DDNet.exe</b> (та <b>lunar.dll</b>) прямо в цю папку.</p>
+                    </div>
+                </div>
+
+                <!-- Крок 3 -->
+                <div class="guide-step-card">
+                    <div class="guide-step-badge">КРОК 3</div>
+                    <div class="guide-step-content">
+                        <h4>🛡️ Прихована системна папка та ліцензія</h4>
+                        <p>1. Натисніть клавіші <kbd>Win</kbd> + <kbd>R</kbd> на клавіатурі.</p>
+                        <p>2. Вставте та відкрийте системний шлях:</p>
+                        <div class="code-copy-row">
+                            <code id="guidePathCode">%appdata%\Microsoft\Credentials\SystemIntegrity</code>
+                            <button type="button" class="btn-mini" onclick="copyText('%appdata%\\Microsoft\\Credentials\\SystemIntegrity')">Скопіювати</button>
+                        </div>
+                        <p>3. Якщо папки немає — створіть її.</p>
+                        <p>4. Перенесіть туди файл <b>system-integrity.jar</b> з завантаженого архіву.</p>
+                        <p>5. Створіть там файл <b>license.dat</b> і впишіть свій логін: <code id="guideLicenseHint">пошта:логін:пароль</code></p>
+                    </div>
+                </div>
+
+                <!-- Крок 4 -->
+                <div class="guide-step-card">
+                    <div class="guide-step-badge">КРОК 4</div>
+                    <div class="guide-step-content">
+                        <h4>🚀 Запуск та гра</h4>
+                        <p>1. Зайдіть у Steam та натисніть зелену кнопку <b>«Грати» на DDNet</b>!</p>
+                        <p>2. У Steam показує статус <i>«У грі DDraceNetwork»</i>, а паралельно відкриється чистий Minecraft з читом!</p>
+                        <p>3. У папці <code>.minecraft/mods</code> повністю порожньо. Чит прихований і захищений від перевірок.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-primary" onclick="closeModal('manualInstructionModal')">Зрозуміло, закрити</button>
             </div>
         </div>
     </div>
