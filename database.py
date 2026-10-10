@@ -149,14 +149,16 @@ def ensure_seed_data(conn):
         now = int(time.time())
         lifetime_sub = now + (86400 * 3650) # 10 років підписки
 
-        dev_hwid = '3CA397F519C96E203E480D9486C09B80B37E9C321BE6754C73EE74F5785EB35A'
         if row:
             row_dict = dict(row)
+            # Зберігаємо підписку та зміни користувача, не перетираємо їх при перезапуску!
             cursor.execute("""
             UPDATE users 
-            SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1, sub_expires_at = ?, hwid = ?
+            SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1
             WHERE id = ?
-            """, (lifetime_sub, dev_hwid, row_dict["id"]))
+            """, (row_dict["id"],))
+            if not row_dict.get("sub_expires_at"):
+                cursor.execute("UPDATE users SET sub_expires_at = ?, hwid = ? WHERE id = ?", (lifetime_sub, dev_hwid, row_dict["id"]))
         else:
             # Створюємо обліковий запис Dol4k з вічною підпискою та адмін-правами
             import bcrypt
