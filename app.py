@@ -706,7 +706,7 @@ async def launcher_auth(req: LauncherAuthRequest):
             conn.commit()
         elif stored_hwid != hwid:
             conn.close()
-            return {"status": "error", "message": "Неверный HWID! Сбросьте привязку в Личном кабинете или у администратора."}
+            return {"status": "error", "message": "Неверный HWID! Для смены ПК обратитесь к владельцу (администратору)."}
 
     import hmac, hashlib
     seed_raw = f"{user_dict['id']}:{hwid}:{expires}:{JWT_SECRET}".encode('utf-8')
@@ -755,18 +755,20 @@ async def download_launcher(current_user: dict = Depends(get_current_user)):
         headers={"Content-Disposition": "attachment; filename=MarsClient.jar"}
     )
 
-# --- Сброс HWID пользователем ---
+# --- Сброс HWID (только администратор) ---
 @app.post("/api/user/reset_hwid")
 async def user_reset_hwid(current_user: dict = Depends(get_current_user)):
     if not current_user:
         raise HTTPException(status_code=401, detail="Необходимо авторизоваться.")
+    if current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Сброс HWID разрешен только владельцу. Обратитесь к администратору.")
     
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET hwid = NULL WHERE id = ?", (current_user["id"],))
     conn.commit()
     conn.close()
-    return {"status": "success", "message": "Прив'язку HWID успішно скинуто! При наступному запуску чит автоматично прив'яжеться до поточного комп'ютера."}
+    return {"status": "success", "message": "Прив'язку HWID успішно скинуто!"}
 
 # --- 1-Клик авто-установщик (.bat) для пользователей ---
 @app.get("/api/download_setup")
