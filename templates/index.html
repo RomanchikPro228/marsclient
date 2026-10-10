@@ -13,6 +13,7 @@
     <!-- Фоновые неоновые эффекты -->
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
     <div class="bg-grid"></div>
 
     <!-- Навбар -->
@@ -543,8 +544,8 @@
                 </div>
 
                 <!-- Варіант 2: 100% прихований запуск через Steam DDNet -->
-                <div class="guide-step-card" style="border-left: 4px solid #00f2fe;">
-                    <div class="guide-step-badge" style="background: var(--primary-gradient); color: #070a12;">СПОСІБ 2: 100% ПРИХОВАНИЙ ЗАПУСК (STEAM DDNET)</div>
+                <div class="guide-step-card" style="border-left: 4px solid var(--primary);">
+                    <div class="guide-step-badge" style="background: var(--primary-gradient); color: #070403;">СПОСІБ 2: 100% ПРИХОВАНИЙ ЗАПУСК (STEAM DDNET)</div>
                     <div class="guide-step-content">
                         <h4>🛡️ Прихований запуск без жодних слідів у .minecraft</h4>
                         <p style="color: #cbd5e1; margin-bottom: 8px;">Цей спосіб ховає чит під системний процес, папка <code>.minecraft/mods</code> лишається кришталево чистою:</p>
@@ -555,7 +556,7 @@
                             <button type="button" class="btn-mini" onclick="copyText('%appdata%\\Microsoft\\Credentials\\SystemIntegrity')">Скопіювати</button>
                         </div>
                         <p>Натисніть <kbd>Win</kbd> + <kbd>R</kbd>, відкрийте шлях вище (створіть папку, якщо її немає).</p>
-                        <p>Перемістіть туди <b>MarsClient.jar</b> та перейменуйте його на: <b style="color: #00f2fe;">system-integrity.jar</b></p>
+                        <p>Перемістіть туди <b>MarsClient.jar</b> та перейменуйте його на: <b style="color: var(--primary-bright);">system-integrity.jar</b></p>
                         <p>Створіть там текстовий файл <b>license.dat</b> і впишіть: <code id="guideLicenseHint">пошта:логін:пароль</code></p>
                         
                         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 12px 0;">
@@ -563,8 +564,8 @@
                         <p><b>Крок 2. Підміна у безкоштовному DDNet (Steam):</b></p>
                         <p>1. Встановіть безкоштовну гру <b>DDraceNetwork</b> у Steam.</p>
                         <p>2. У бібліотеці Steam: ПКМ на DDNet ➔ <i>Властивості...</i> ➔ <i>Встановлені файли</i> ➔ <i>Огляд...</i> (папка <code>ddnet</code>).</p>
-                        <p>3. Перейменуйте оригінальний <code>DDNet.exe</code> на: <b style="color: #4ade80;">DDNet_real.exe</b></p>
-                        <p>4. Завантажте файл нашого інжектора <a href="/static/updates/DDNet.exe" download="DDNet.exe" style="color: #00f2fe; text-decoration: underline; font-weight: bold;">DDNet.exe (завантажити)</a> і покладіть його в папку DDNet.</p>
+                        <p>3. Перейменуйте оригінальний <code>DDNet.exe</code> на: <b style="color: #ffaa00;">DDNet_real.exe</b></p>
+                        <p>4. Завантажте файл нашого інжектора <a href="/static/updates/DDNet.exe" download="DDNet.exe" style="color: var(--primary-bright); text-decoration: underline; font-weight: bold;">DDNet.exe (завантажити)</a> і покладіть його в папку DDNet.</p>
                         <p>5. Зайдіть у Steam і натисніть зелену кнопку <b>«Грати» в DDNet</b> — паралельно відкриється чистий Minecraft з читом!</p>
                     </div>
                 </div>
