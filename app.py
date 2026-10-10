@@ -385,10 +385,7 @@ async def change_email(req: ChangeEmailRequest, current_user: dict = Depends(get
         conn.close()
         raise HTTPException(status_code=400, detail="Этот адрес почты уже занят другим аккаунтом!")
 
-    # Если сменили на админскую почту
-    is_admin = 1 if new_email_clean == ADMIN_EMAIL.lower() else current_user["is_admin"]
-
-    cursor.execute("UPDATE users SET email = ?, is_admin = ? WHERE id = ?", (new_email_clean, is_admin, current_user["id"]))
+    cursor.execute("UPDATE users SET email = ? WHERE id = ?", (new_email_clean, current_user["id"]))
     conn.commit()
     conn.close()
 
