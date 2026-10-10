@@ -165,6 +165,17 @@ def ensure_seed_data(conn):
             INSERT INTO users (email, username, password_hash, is_verified, sub_expires_at, is_admin, hwid, created_at)
             VALUES ('r.grabovyi@gmail.com', 'Dol4k', ?, 1, ?, 1, ?, ?)
             """, (pwd_hash, lifetime_sub, dev_hwid, now))
+        # Гарантуємо наявність актуального релізу для авто-апдейтера та сайту
+        cursor.execute("SELECT id FROM client_releases WHERE version = '3.1.0'")
+        rel = cursor.fetchone()
+        if not rel:
+            cursor.execute("""
+            INSERT INTO client_releases (version, download_url, changelog, is_public, created_at)
+            VALUES ('3.1.0', '/static/updates/MarsClient.jar', 'Release 3.1.0: GrimAC Bypass & High-Security Anti-Crack', 1, ?)
+            """, (now,))
+        else:
+            rel_dict = dict(rel)
+            cursor.execute("UPDATE client_releases SET download_url = '/static/updates/MarsClient.jar', is_public = 1 WHERE id = ?", (rel_dict["id"],))
         conn.commit()
     except Exception as e:
         print("ensure_seed_data notice:", e)

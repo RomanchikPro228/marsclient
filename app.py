@@ -696,8 +696,8 @@ async def download_launcher(current_user: dict = Depends(get_current_user)):
     if current_user.get("sub_expires_at", 0) <= now and current_user.get("is_admin") != 1:
         raise HTTPException(status_code=403, detail="Для скачивания требуется активная подписка.")
     
-    # Возвращаем прямую ссылку на инсталлятор
-    return {"status": "success", "download_url": "/static/MarsLauncher.exe"}
+    # Возвращаем прямую ссылку на актуальный клиент MarsClient
+    return {"status": "success", "download_url": "/static/updates/MarsClient.jar", "filename": "MarsClient.jar"}
 
 if __name__ == "__main__":
     import uvicorn

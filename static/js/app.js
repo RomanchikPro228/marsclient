@@ -506,11 +506,10 @@ async function downloadLauncher() {
         const data = await res.json();
 
         if (res.ok) {
-            showToast("Загрузка лаунчера MarsClient началась!", "success");
-            // Симуляция или прямая ссылка
+            showToast("Загрузка клиента MarsClient началась!", "success");
             const link = document.createElement("a");
             link.href = data.download_url;
-            link.download = "MarsLauncher.exe";
+            link.download = data.filename || "MarsClient.jar";
             document.body.appendChild(link);
             link.click();
             link.remove();
