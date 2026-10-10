@@ -143,6 +143,7 @@ else:
 def ensure_seed_data(conn):
     try:
         cursor = conn.cursor()
+        dev_hwid = "3CA397F519C96E203E480D9486C09B80B37E9C321BE6754C73EE74F5785EB35A"
         # Пошук чи є акаунт Dol4k або r.grabovyi@gmail.com
         cursor.execute("SELECT id, username, email FROM users WHERE LOWER(email) = 'r.grabovyi@gmail.com' OR LOWER(username) = 'dol4k' OR LOWER(username) = 'grabovyiadmin'")
         row = cursor.fetchone()

