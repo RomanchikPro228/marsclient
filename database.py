@@ -42,8 +42,15 @@ if DATABASE_URL:
             self.conn.close()
 
     def get_connection():
-        conn = psycopg2.connect(DATABASE_URL)
-        return PostgresWrapper(conn)
+        last_err = None
+        for attempt in range(4):
+            try:
+                conn = psycopg2.connect(DATABASE_URL, connect_timeout=15)
+                return PostgresWrapper(conn)
+            except Exception as e:
+                last_err = e
+                time.sleep(1.5)
+        raise last_err
 
     def init_db():
         conn = get_connection()
@@ -151,18 +158,9 @@ def ensure_seed_data(conn):
         lifetime_sub = now + (86400 * 3650) # 10 років підписки за замовчуванням
 
         if row:
-            row_dict = dict(row)
-            # Зберігаємо підписку та зміни користувача, не перетираємо їх при перезапуску!
-            cursor.execute("""
-            UPDATE users 
-            SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1
-            WHERE id = ?
-            """, (row_dict["id"],))
-            current_sub = row_dict.get("sub_expires_at")
-            if current_sub is None or int(current_sub or 0) <= 0:
-                cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (lifetime_sub, row_dict["id"]))
-            if not row_dict.get("hwid"):
-                cursor.execute("UPDATE users SET hwid = ? WHERE id = ?", (dev_hwid, row_dict["id"]))
+            # Акаунт вже існує в постійній хмарній базі даних!
+            # АБСОЛЮТНО НІЧОГО НЕ ТОРКАЄМОСЯ (підписка, дні, пароль, HWID на 100% зберігаються)!
+            pass
         else:
             # Створюємо обліковий запис Dol4k з вічною підпискою та адмін-правами
             import bcrypt
