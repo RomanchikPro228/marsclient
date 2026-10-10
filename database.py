@@ -145,10 +145,10 @@ def ensure_seed_data(conn):
         cursor = conn.cursor()
         dev_hwid = "3CA397F519C96E203E480D9486C09B80B37E9C321BE6754C73EE74F5785EB35A"
         # Пошук чи є акаунт Dol4k або r.grabovyi@gmail.com
-        cursor.execute("SELECT id, username, email FROM users WHERE LOWER(email) = 'r.grabovyi@gmail.com' OR LOWER(username) = 'dol4k' OR LOWER(username) = 'grabovyiadmin'")
+        cursor.execute("SELECT id, username, email, sub_expires_at, hwid FROM users WHERE LOWER(email) = 'r.grabovyi@gmail.com' OR LOWER(username) = 'dol4k' OR LOWER(username) = 'grabovyiadmin'")
         row = cursor.fetchone()
         now = int(time.time())
-        lifetime_sub = now + (86400 * 3650) # 10 років підписки
+        lifetime_sub = now + (86400 * 3650) # 10 років підписки за замовчуванням
 
         if row:
             row_dict = dict(row)
@@ -158,8 +158,11 @@ def ensure_seed_data(conn):
             SET username = 'Dol4k', email = 'r.grabovyi@gmail.com', is_admin = 1, is_verified = 1
             WHERE id = ?
             """, (row_dict["id"],))
-            if not row_dict.get("sub_expires_at"):
-                cursor.execute("UPDATE users SET sub_expires_at = ?, hwid = ? WHERE id = ?", (lifetime_sub, dev_hwid, row_dict["id"]))
+            current_sub = row_dict.get("sub_expires_at")
+            if current_sub is None or int(current_sub or 0) <= 0:
+                cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (lifetime_sub, row_dict["id"]))
+            if not row_dict.get("hwid"):
+                cursor.execute("UPDATE users SET hwid = ? WHERE id = ?", (dev_hwid, row_dict["id"]))
         else:
             # Створюємо обліковий запис Dol4k з вічною підпискою та адмін-правами
             import bcrypt
