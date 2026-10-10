@@ -26,7 +26,7 @@
                 </div>
                 <div class="brand-text">
                     <span class="brand-title">MARS<span>CLIENT</span></span>
-                    <span class="brand-sub">OFFICIAL PORTAL</span>
+                    <span class="brand-sub" data-i18n="brand_sub">OFFICIAL PORTAL</span>
                 </div>
             </div>
 
@@ -34,24 +34,31 @@
             <nav class="nav-links" id="authNav" style="display: none;">
                 <button class="nav-btn active" id="navStoreBtn" onclick="switchView('store')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-2Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                    Купить
+                    <span data-i18n="nav_store">Купить</span>
                 </button>
                 <button class="nav-btn" id="navCabinetBtn" onclick="switchView('cabinet')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Личный кабинет
+                    <span data-i18n="nav_cabinet">Личный кабинет</span>
                 </button>
                 <button class="nav-btn admin-badge-btn" id="navAdminBtn" style="display: none;" onclick="switchView('admin')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    Админка
+                    <span data-i18n="nav_admin">Админка</span>
                 </button>
             </nav>
 
             <!-- Правая часть навбара -->
             <div class="nav-actions">
+                <!-- Языковой переключатель -->
+                <div class="lang-switcher">
+                    <button type="button" class="lang-option active" data-lang="ru" onclick="switchLanguage('ru')" title="Русский">RU</button>
+                    <button type="button" class="lang-option" data-lang="ua" onclick="switchLanguage('ua')" title="Українська">UA</button>
+                    <button type="button" class="lang-option" data-lang="en" onclick="switchLanguage('en')" title="English">EN</button>
+                </div>
+
                 <!-- Для гостей -->
                 <div class="guest-buttons" id="guestNav">
-                    <button class="btn btn-outline" onclick="openModal('loginModal')">Войти</button>
-                    <button class="btn btn-primary" onclick="openModal('registerModal')">Регистрация</button>
+                    <button class="btn btn-outline" onclick="openModal('loginModal')" data-i18n="btn_login">Войти</button>
+                    <button class="btn btn-primary" onclick="openModal('registerModal')" data-i18n="btn_register">Регистрация</button>
                 </div>
 
                 <!-- Для авторизованных -->
@@ -75,22 +82,22 @@
             <div class="hero-container">
                 <div class="hero-badge">
                     <span class="pulse-dot"></span>
-                    VERIFIED FUNTIME & GRIMAC BYPASS
+                    <span data-i18n="hero_badge">VERIFIED FUNTIME & GRIMAC BYPASS</span>
                 </div>
-                <h1 class="hero-title">
+                <h1 class="hero-title" data-i18n="hero_title">
                     ДОМИНИРУЙ С <br>
                     <span class="gradient-text">MARSCLIENT</span>
                 </h1>
-                <p class="hero-desc">
+                <p class="hero-desc" data-i18n="hero_desc">
                     Приватный игровой клиент нового поколения для Minecraft. Мгновенный снайп брони, 100% защита от детекта 4.3.1 AutoBuy, умная наковальня и максимальный FPS.
                 </p>
 
                 <div class="hero-actions">
                     <button class="btn btn-primary btn-lg" onclick="openModal('registerModal')">
-                        Создать аккаунт
+                        <span data-i18n="hero_btn_reg">Создать аккаунт</span>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </button>
-                    <button class="btn btn-glass btn-lg" onclick="openModal('loginModal')">
+                    <button class="btn btn-glass btn-lg" onclick="openModal('loginModal')" data-i18n="hero_btn_login">
                         Войти в аккаунт
                     </button>
                 </div>
@@ -100,17 +107,17 @@
                     <div class="feature-card">
                         <div class="feature-icon">🎯</div>
                         <h3>TriggerBot</h3>
-                        <p>Идеальный авто-удар при наведении на цель с настраиваемыми задержками и проверкой щита.</p>
+                        <p data-i18n="feat_tb_desc">Идеальный авто-удар при наведении на цель с настраиваемыми задержками и проверкой щита.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">🏹</div>
                         <h3>AimAssist</h3>
-                        <p>Плавная легитная доводка прицела для комфортного PvP без детектов античитами.</p>
+                        <p data-i18n="feat_aa_desc">Плавная легитная доводка прицела для комфортного PvP без детектов античитами.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">⚡</div>
                         <h3>FtHelper</h3>
-                        <p>Комплексный автоматический помощник для комфортной игры и фарма на анархии FunTime.</p>
+                        <p data-i18n="feat_fh_desc">Комплексный автоматический помощник для комфортной игры и фарма на анархии FunTime.</p>
                     </div>
                 </div>
             </div>
@@ -120,22 +127,23 @@
         <section class="view-section" id="storeView">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">ВЫБЕРИТЕ <span class="gradient-text">ТАРИФ ПОДПИСКИ</span></h2>
-                    <p class="section-sub">Оплата через безопасную торговую площадку FunPay с мгновенным получением ключа</p>
+                    <h2 class="section-title" data-i18n="store_title">ВЫБЕРИТЕ <span class="gradient-text">ТАРИФ ПОДПИСКИ</span></h2>
+                    <p class="section-sub" data-i18n="store_sub">Оплата через безопасную торговую площадку FunPay с мгновенным получением ключа</p>
                 </div>
 
                 <div class="pricing-grid">
                     <!-- Тариф 1: 30 дней -->
                     <div class="price-card">
                         <div class="price-header">
-                            <span class="plan-tag">СТАРТОВЫЙ</span>
-                            <h3 class="plan-name">30 Дней</h3>
-                            <div class="plan-price">Доступ на месяц</div>
+                            <span class="plan-tag" data-i18n="plan_30_tag">СТАРТОВЫЙ</span>
+                            <h3 class="plan-name" data-i18n="plan_30_title">30 Дней</h3>
+                            <div class="plan-price-val" id="priceVal30">180 ₽</div>
+                            <div class="plan-price" data-i18n="plan_30_desc">Доступ на месяц</div>
                         </div>
                         <div class="plan-desc-custom">
-                            <p>Вы получаете лучший чит на 30д</p>
+                            <p data-i18n="plan_30_sub">Вы получаете лучший чит на 30д</p>
                         </div>
-                        <button class="btn btn-outline btn-block funpay-btn" onclick="redirectToFunPay('30d')">
+                        <button class="btn btn-outline btn-block funpay-btn" onclick="redirectToFunPay('30d')" data-i18n="btn_buy">
                             Купить
                         </button>
                     </div>
@@ -143,30 +151,32 @@
                     <!-- Тариф 2: 90 дней -->
                     <div class="price-card">
                         <div class="price-header">
-                            <span class="plan-tag">ВЫГОДНЫЙ</span>
-                            <h3 class="plan-name">90 Дней</h3>
-                            <div class="plan-price">3 Месяца доступа</div>
+                            <span class="plan-tag" data-i18n="plan_90_tag">ВЫГОДНЫЙ</span>
+                            <h3 class="plan-name" data-i18n="plan_90_title">90 Дней</h3>
+                            <div class="plan-price-val" id="priceVal90">450 ₽</div>
+                            <div class="plan-price" data-i18n="plan_90_desc">3 Месяца доступа</div>
                         </div>
                         <div class="plan-desc-custom">
-                            <p>Вы получаете лучший чит на 90д</p>
+                            <p data-i18n="plan_90_sub">Вы получаете лучший чит на 90д</p>
                         </div>
-                        <button class="btn btn-outline btn-block funpay-btn" onclick="redirectToFunPay('90d')">
+                        <button class="btn btn-outline btn-block funpay-btn" onclick="redirectToFunPay('90d')" data-i18n="btn_buy">
                             Купить
                         </button>
                     </div>
 
                     <!-- Тариф 3: Навсегда (Популярный) -->
                     <div class="price-card featured">
-                        <div class="badge-featured">ПОПУЛЯРНЫЙ</div>
+                        <div class="badge-featured" data-i18n="badge_popular">ПОПУЛЯРНЫЙ</div>
                         <div class="price-header">
-                            <span class="plan-tag">LIFETIME</span>
-                            <h3 class="plan-name">Навсегда</h3>
-                            <div class="plan-price">Безлимитный доступ</div>
+                            <span class="plan-tag" data-i18n="plan_life_tag">LIFETIME</span>
+                            <h3 class="plan-name" data-i18n="plan_life_title">Навсегда</h3>
+                            <div class="plan-price-val" id="priceValLife">900 ₽</div>
+                            <div class="plan-price" data-i18n="plan_life_desc">Безлимитный доступ</div>
                         </div>
                         <div class="plan-desc-custom">
-                            <p>Вы получаете лучший чит навсегда</p>
+                            <p data-i18n="plan_life_sub">Вы получаете лучший чит навсегда</p>
                         </div>
-                        <button class="btn btn-primary btn-block funpay-btn" onclick="redirectToFunPay('lifetime')">
+                        <button class="btn btn-primary btn-block funpay-btn" onclick="redirectToFunPay('lifetime')" data-i18n="btn_buy">
                             Купить
                         </button>
                     </div>
@@ -175,7 +185,7 @@
                 <!-- Подсказка -->
                 <div class="info-banner">
                     <div class="banner-icon">ℹ️</div>
-                    <div>
+                    <div data-i18n="info_banner">
                         <strong>Как происходит покупка:</strong>
                         <p>После оплаты на FunPay вы получаете ключ активации вида <code>MARS-XXXX-XXXX-XXXX</code>. Перейдите во вкладку <strong>Личный кабинет</strong> и введите его в поле активации — дни начислятся моментально!</p>
                     </div>
@@ -187,8 +197,8 @@
         <section class="view-section" id="cabinetView">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">ЛИЧНЫЙ <span class="gradient-text">КАБИНЕТ</span></h2>
-                    <p class="section-sub">Управление профилем, подпиской и активацией ключей</p>
+                    <h2 class="section-title" data-i18n="cab_title">ЛИЧНЫЙ <span class="gradient-text">КАБИНЕТ</span></h2>
+                    <p class="section-sub" data-i18n="cab_sub">Управление профилем, подпиской и активацией ключей</p>
                 </div>
 
                 <div class="dashboard-grid">
@@ -198,62 +208,60 @@
                             <div class="avatar-circle" id="cabAvatarLetter">M</div>
                             <div>
                                 <h3 class="dash-user-name" id="cabUsername">Loading...</h3>
-                                <span class="dash-user-role" id="cabRoleBadge">Пользователь</span>
+                                <span class="dash-user-role" id="cabRoleBadge" data-i18n="cab_role_user">Пользователь</span>
                             </div>
                         </div>
 
                         <div class="info-list">
                             <div class="info-row">
-                                <span class="info-label">Почта:</span>
+                                <span class="info-label" data-i18n="cab_email_lbl">Почта:</span>
                                 <span class="info-val" id="cabEmail">...</span>
-                                <button class="btn-mini" onclick="openModal('changeEmailModal')">Сменить</button>
+                                <button class="btn-mini" onclick="openModal('changeEmailModal')" data-i18n="cab_btn_change">Сменить</button>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Пароль:</span>
+                                <span class="info-label" data-i18n="cab_pwd_lbl">Пароль:</span>
                                 <span class="info-val">••••••••</span>
-                                <button class="btn-mini" onclick="openModal('changePasswordModal')">Сменить</button>
+                                <button class="btn-mini" onclick="openModal('changePasswordModal')" data-i18n="cab_btn_change">Сменить</button>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">HWID:</span>
+                                <span class="info-label" data-i18n="cab_hwid_lbl">HWID:</span>
                                 <span class="info-val hwid-val" id="cabHwid">Не привязан</span>
-                                <span class="text-muted" style="font-size: 0.8rem; margin-left: auto;">(Смена ПК через администратора)</span>
+                                <span class="text-muted" style="font-size: 0.8rem; margin-left: auto;" data-i18n="cab_hwid_note">(Смена ПК через администратора)</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Карточка 2: Статус подписки и Скачивание -->
                     <div class="dash-card">
-                        <h3 class="card-title">Статус подписки</h3>
+                        <h3 class="card-title" data-i18n="cab_sub_title">Статус подписки</h3>
                         <div class="sub-status-box" id="subStatusBox">
                             <div class="status-indicator" id="subStatusIndicator"></div>
                             <div>
-                                <div class="sub-status-text" id="subStatusText">ПРОВЕРКА...</div>
+                                <div class="sub-status-text" id="subStatusText" data-i18n="cab_sub_checking">ПРОВЕРКА...</div>
                                 <div class="sub-days-count" id="subDaysCount">0 дн. осталось</div>
                             </div>
                         </div>
 
                         <div class="download-box" style="display: flex; flex-direction: column; gap: 8px;">
-                            <button class="btn btn-primary btn-block btn-lg" id="downloadSetupBtn" onclick="downloadSetup()">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <button class="btn btn-primary btn-block btn-lg" id="downloadSetupBtn" onclick="downloadSetup()" data-i18n="cab_auto_btn">
                                 ⚡ Авто-установка (MarsClient.jar + .BAT скрипт)
                             </button>
-                            <button class="btn btn-secondary btn-block" id="downloadManualBtn" onclick="downloadManualWithGuide()">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <button class="btn btn-secondary btn-block" id="downloadManualBtn" onclick="downloadManualWithGuide()" data-i18n="cab_manual_btn">
                                 📦 Ручная установка (Только MarsClient.jar + Инструкция)
                             </button>
-                            <span class="download-hint" id="downloadHint">Доступно при активной подписке</span>
+                            <span class="download-hint" id="downloadHint" data-i18n="cab_hint_active">Доступно при активной подписке</span>
                         </div>
                     </div>
 
                     <!-- Карточка 3: Активация ключа FunPay -->
                     <div class="dash-card full-width">
-                        <h3 class="card-title">Активация ключа FunPay</h3>
-                        <p class="card-desc">Введите полученный после покупки ключ, чтобы активировать или продлить дни подписки:</p>
+                        <h3 class="card-title" data-i18n="cab_key_title">Активация ключа FunPay</h3>
+                        <p class="card-desc" data-i18n="cab_key_desc">Введите полученный после покупки ключ, чтобы активировать или продлить дни подписки:</p>
                         
                         <form class="key-activate-form" onsubmit="handleActivateKey(event)">
                             <div class="input-group">
                                 <input type="text" id="keyInput" class="form-input key-input" placeholder="MARS-XXXX-XXXX-XXXX" required>
-                                <button type="submit" class="btn btn-primary" id="activateBtn">
+                                <button type="submit" class="btn btn-primary" id="activateBtn" data-i18n="cab_btn_activate">
                                     Активировать ключ
                                 </button>
                             </div>

@@ -5,11 +5,278 @@
 
 const FUNPAY_URL = "https://funpay.com/uk/users/14128634/";
 let currentUser = null;
+let currentLang = localStorage.getItem("mars_lang") || "ru";
+
+// ==========================================
+// 0. Мультиязычность & Валюты (i18n)
+// ==========================================
+const I18N = {
+    ru: {
+        currency_30: "180 ₽",
+        currency_90: "450 ₽",
+        currency_life: "900 ₽",
+        brand_sub: "ОФИЦИАЛЬНЫЙ ПОРТАЛ",
+        nav_store: "Купить",
+        nav_cabinet: "Личный кабинет",
+        nav_admin: "Админка",
+        btn_login: "Войти",
+        btn_register: "Регистрация",
+        hero_badge: "VERIFIED FUNTIME & GRIMAC BYPASS",
+        hero_title: "ДОМИНИРУЙ С <br><span class=\"gradient-text\">MARSCLIENT</span>",
+        hero_desc: "Приватный игровой клиент нового поколения для Minecraft. Мгновенный снайп брони, 100% защита от детекта 4.3.1 AutoBuy, умная наковальня и максимальный FPS.",
+        hero_btn_reg: "Создать аккаунт",
+        hero_btn_login: "Войти в аккаунт",
+        feat_tb_desc: "Идеальный авто-удар при наведении на цель с настраиваемыми задержками и проверкой щита.",
+        feat_aa_desc: "Плавная легитная доводка прицела для комфортного PvP без детектов античитами.",
+        feat_fh_desc: "Комплексный автоматический помощник для комфортной игры и фарма на анархии FunTime.",
+        store_title: "ВЫБЕРИТЕ <span class=\"gradient-text\">ТАРИФ ПОДПИСКИ</span>",
+        store_sub: "Оплата через безопасную торговую площадку FunPay с мгновенным получением ключа",
+        plan_30_tag: "СТАРТОВЫЙ",
+        plan_30_title: "30 Дней",
+        plan_30_desc: "Доступ на месяц",
+        plan_30_sub: "Вы получаете лучший чит на 30д",
+        plan_90_tag: "ВЫГОДНЫЙ",
+        plan_90_title: "90 Дней",
+        plan_90_desc: "3 Месяца доступа",
+        plan_90_sub: "Вы получаете лучший чит на 90д",
+        badge_popular: "ПОПУЛЯРНЫЙ",
+        plan_life_tag: "LIFETIME",
+        plan_life_title: "Навсегда",
+        plan_life_desc: "Безлимитный доступ",
+        plan_life_sub: "Вы получаете лучший чит навсегда",
+        btn_buy: "Купить",
+        info_banner: "<strong>Как происходит покупка:</strong><p>После оплаты на FunPay вы получаете ключ активации вида <code>MARS-XXXX-XXXX-XXXX</code>. Перейдите во вкладку <strong>Личный кабинет</strong> и введите его в поле активации — дни начислятся моментально!</p>",
+        cab_title: "ЛИЧНЫЙ <span class=\"gradient-text\">КАБИНЕТ</span>",
+        cab_sub: "Управление профилем, подпиской и активацией ключей",
+        cab_role_admin: "⭐ ВЛАДЕЛЕЦ",
+        cab_role_user: "Пользователь",
+        cab_email_lbl: "Почта:",
+        cab_pwd_lbl: "Пароль:",
+        cab_hwid_lbl: "HWID:",
+        cab_hwid_none: "Не привязан",
+        cab_hwid_note: "(Смена ПК через администратора)",
+        cab_btn_change: "Сменить",
+        cab_sub_title: "Статус подписки",
+        cab_sub_active: "АКТИВНА",
+        cab_sub_expired: "ИСТЕКЛА / НЕ АКТИВНА",
+        cab_sub_checking: "ПРОВЕРКА...",
+        cab_days_left: "дн. осталось",
+        badge_days_suffix: "дн.",
+        cab_auto_btn: "⚡ Авто-установка (MarsClient.jar + .BAT скрипт)",
+        cab_manual_btn: "📦 Ручная установка (Только MarsClient.jar + Инструкция)",
+        cab_hint_active: "Доступно при активной подписке",
+        cab_key_title: "Активация ключа FunPay",
+        cab_key_desc: "Введите полученный после покупки ключ, чтобы активировать или продлить дни подписки:",
+        cab_btn_activate: "Активировать ключ",
+        admin_title: "ПАНЕЛЬ <span class=\"gradient-text\">ВЛАДЕЛЬЦА</span>",
+        admin_sub: "Управление ключами FunPay, подписками и блокировками"
+    },
+    ua: {
+        currency_30: "80 грн",
+        currency_90: "200 грн",
+        currency_life: "400 грн",
+        brand_sub: "ОФІЦІЙНИЙ ПОРТАЛ",
+        nav_store: "Купити",
+        nav_cabinet: "Особистий кабінет",
+        nav_admin: "Адмінка",
+        btn_login: "Увійти",
+        btn_register: "Реєстрація",
+        hero_badge: "VERIFIED FUNTIME & GRIMAC BYPASS",
+        hero_title: "ДОМІНУЙ З <br><span class=\"gradient-text\">MARSCLIENT</span>",
+        hero_desc: "Приватний ігровий клієнт нового покоління для Minecraft. Миттєвий снайп броні, 100% захист від детекту 4.3.1 AutoBuy, розумне ковадло та максимальний FPS.",
+        hero_btn_reg: "Створити акаунт",
+        hero_btn_login: "Увійти в акаунт",
+        feat_tb_desc: "Ідеальний авто-удар при наведенні на ціль з налаштуванням затримок та перевіркою щита.",
+        feat_aa_desc: "Плавне легітне доведення прицілу для комфортного PvP без детекту античитами.",
+        feat_fh_desc: "Комплексний автоматичний помічник для комфортної гри та фарму на анархії FunTime.",
+        store_title: "ОБЕРІТЬ <span class=\"gradient-text\">ТАРИФ ПІДПИСКИ</span>",
+        store_sub: "Оплата через безпечний торговельний майданчик FunPay з миттєвим отриманням ключа",
+        plan_30_tag: "СТАРТОВИЙ",
+        plan_30_title: "30 Днів",
+        plan_30_desc: "Доступ на місяць",
+        plan_30_sub: "Ви отримуєте найкращий чит на 30д",
+        plan_90_tag: "ВИГІДНИЙ",
+        plan_90_title: "90 Днів",
+        plan_90_desc: "3 Місяці доступу",
+        plan_90_sub: "Ви отримуєте найкращий чит на 90д",
+        badge_popular: "ПОПУЛЯРНИЙ",
+        plan_life_tag: "LIFETIME",
+        plan_life_title: "Назавжди",
+        plan_life_desc: "Безлімітний доступ",
+        plan_life_sub: "Ви отримуєте найкращий чит назавжди",
+        btn_buy: "Купити",
+        info_banner: "<strong>Як відбувається покупка:</strong><p>Після оплати на FunPay ви отримуєте ключ активації виду <code>MARS-XXXX-XXXX-XXXX</code>. Перейдіть у вкладку <strong>Особистий кабінет</strong> і введіть його в поле активації — дні нарахуються миттєво!</p>",
+        cab_title: "ОСОБИСТИЙ <span class=\"gradient-text\">КАБІНЕТ</span>",
+        cab_sub: "Керування профілем, підпискою та активацією ключів",
+        cab_role_admin: "⭐ ВЛАСНИК",
+        cab_role_user: "Користувач",
+        cab_email_lbl: "Пошта:",
+        cab_pwd_lbl: "Пароль:",
+        cab_hwid_lbl: "HWID:",
+        cab_hwid_none: "Не прив'язаний",
+        cab_hwid_note: "(Зміна ПК через адміністратора)",
+        cab_btn_change: "Змінити",
+        cab_sub_title: "Статус підписки",
+        cab_sub_active: "АКТИВНА",
+        cab_sub_expired: "ЗАКІНЧИЛАСЬ / НЕ АКТИВНА",
+        cab_sub_checking: "ПЕРЕВІРКА...",
+        cab_days_left: "дн. залишилось",
+        badge_days_suffix: "дн.",
+        cab_auto_btn: "⚡ Авто-встановлення (MarsClient.jar + .BAT скрипт)",
+        cab_manual_btn: "📦 Ручне встановлення (Тільки MarsClient.jar + Інструкція)",
+        cab_hint_active: "Доступно при активній підписці",
+        cab_key_title: "Активація ключа FunPay",
+        cab_key_desc: "Введіть отриманий після покупки ключ, щоб активувати або продовжити дні підписки:",
+        cab_btn_activate: "Активувати ключ",
+        admin_title: "ПАНЕЛЬ <span class=\"gradient-text\">ВЛАСНИКА</span>",
+        admin_sub: "Керування ключами FunPay, підписками та блокуваннями"
+    },
+    en: {
+        currency_30: "$1.99",
+        currency_90: "$4.99",
+        currency_life: "$9.99",
+        brand_sub: "OFFICIAL PORTAL",
+        nav_store: "Store",
+        nav_cabinet: "Dashboard",
+        nav_admin: "Admin",
+        btn_login: "Log In",
+        btn_register: "Register",
+        hero_badge: "VERIFIED FUNTIME & GRIMAC BYPASS",
+        hero_title: "DOMINATE WITH <br><span class=\"gradient-text\">MARSCLIENT</span>",
+        hero_desc: "Next-generation private gaming client for Minecraft. Instant armor snipe, 100% undetected 4.3.1 AutoBuy, smart anvil and maximum FPS.",
+        hero_btn_reg: "Create Account",
+        hero_btn_login: "Log In",
+        feat_tb_desc: "Flawless auto-trigger on crosshair target with customizable delays and shield checks.",
+        feat_aa_desc: "Ultra-smooth legit aim assistance for competitive PvP without anticheat flags.",
+        feat_fh_desc: "Comprehensive automated helper for smooth gameplay and grinding on FunTime anarchy.",
+        store_title: "CHOOSE A <span class=\"gradient-text\">SUBSCRIPTION PLAN</span>",
+        store_sub: "Secure payment via FunPay marketplace with instant key activation",
+        plan_30_tag: "STARTER",
+        plan_30_title: "30 Days",
+        plan_30_desc: "1 Month Access",
+        plan_30_sub: "Get the ultimate cheat for 30 days",
+        plan_90_tag: "VALUE",
+        plan_90_title: "90 Days",
+        plan_90_desc: "3 Months Access",
+        plan_90_sub: "Get the ultimate cheat for 90 days",
+        badge_popular: "POPULAR",
+        plan_life_tag: "LIFETIME",
+        plan_life_title: "Lifetime",
+        plan_life_desc: "Unlimited Access",
+        plan_life_sub: "Get the ultimate cheat forever",
+        btn_buy: "Buy Now",
+        info_banner: "<strong>How purchase works:</strong><p>After checkout on FunPay you receive an activation key format <code>MARS-XXXX-XXXX-XXXX</code>. Open the <strong>Dashboard</strong> tab and enter it into the key activation box — subscription days are applied instantly!</p>",
+        cab_title: "USER <span class=\"gradient-text\">DASHBOARD</span>",
+        cab_sub: "Manage account, subscription time and key activation",
+        cab_role_admin: "⭐ OWNER",
+        cab_role_user: "User",
+        cab_email_lbl: "Email:",
+        cab_pwd_lbl: "Password:",
+        cab_hwid_lbl: "HWID:",
+        cab_hwid_none: "Not linked",
+        cab_hwid_note: "(Hardware reset via admin)",
+        cab_btn_change: "Change",
+        cab_sub_title: "Subscription Status",
+        cab_sub_active: "ACTIVE",
+        cab_sub_expired: "EXPIRED / INACTIVE",
+        cab_sub_checking: "CHECKING...",
+        cab_days_left: "days left",
+        badge_days_suffix: "days",
+        cab_auto_btn: "⚡ Auto-Install (MarsClient.jar + .BAT script)",
+        cab_manual_btn: "📦 Manual Install (MarsClient.jar only + Guide)",
+        cab_hint_active: "Available with active subscription",
+        cab_key_title: "Activate FunPay Key",
+        cab_key_desc: "Enter your purchased key below to activate or extend subscription days:",
+        cab_btn_activate: "Activate Key",
+        admin_title: "OWNER <span class=\"gradient-text\">PANEL</span>",
+        admin_sub: "Manage FunPay keys, user subscriptions and bans"
+    }
+};
+
+function switchLanguage(lang) {
+    if (!I18N[lang]) lang = "ru";
+    currentLang = lang;
+    localStorage.setItem("mars_lang", lang);
+    applyTranslations();
+}
+
+function getI18nText(key, fallback = "") {
+    const t = I18N[currentLang] || I18N.ru;
+    return t[key] !== undefined ? t[key] : fallback;
+}
+
+function applyTranslations() {
+    const t = I18N[currentLang] || I18N.ru;
+
+    // Перемикання активної кнопки мови
+    document.querySelectorAll(".lang-option").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.lang === currentLang);
+    });
+
+    // Оновлення цін за обраною валютою
+    const p30 = document.getElementById("priceVal30");
+    if (p30) p30.innerText = t.currency_30;
+    const p90 = document.getElementById("priceVal90");
+    if (p90) p90.innerText = t.currency_90;
+    const pLife = document.getElementById("priceValLife");
+    if (pLife) pLife.innerText = t.currency_life;
+
+    // Оновлення всіх елементів з атрибутом data-i18n
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (t[key] !== undefined) {
+            el.innerHTML = t[key];
+        }
+    });
+
+    // Оновлення динамічних даних користувача, якщо він залогінений
+    if (currentUser) {
+        updateDynamicUserTexts(currentUser);
+    }
+}
+
+function updateDynamicUserTexts(user) {
+    if (!user) return;
+    const badgeDays = document.getElementById("badgeDays");
+    const cabRoleBadge = document.getElementById("cabRoleBadge");
+    const subStatusText = document.getElementById("subStatusText");
+    const subDaysCount = document.getElementById("subDaysCount");
+    const subStatusIndicator = document.getElementById("subStatusIndicator");
+
+    if (badgeDays) {
+        badgeDays.innerText = `${user.remaining_days} ${getI18nText("badge_days_suffix", "дн.")}`;
+    }
+
+    if (cabRoleBadge) {
+        if (user.is_admin === 1) {
+            cabRoleBadge.innerText = getI18nText("cab_role_admin", "⭐ ВЛАДЕЛЕЦ");
+            cabRoleBadge.className = "dash-user-role role-admin";
+        } else {
+            cabRoleBadge.innerText = getI18nText("cab_role_user", "Пользователь");
+            cabRoleBadge.className = "dash-user-role";
+        }
+    }
+
+    if (user.is_active) {
+        if (subStatusText) subStatusText.innerText = getI18nText("cab_sub_active", "АКТИВНА");
+        if (subDaysCount) subDaysCount.innerText = `${user.remaining_days} ${getI18nText("cab_days_left", "дн. осталось")}`;
+        if (subStatusIndicator) {
+            subStatusIndicator.className = "status-indicator active";
+        }
+    } else {
+        if (subStatusText) subStatusText.innerText = getI18nText("cab_sub_expired", "ИСТЕКЛА / НЕ АКТИВНА");
+        if (subDaysCount) subDaysCount.innerText = `0 ${getI18nText("cab_days_left", "дн. осталось")}`;
+        if (subStatusIndicator) {
+            subStatusIndicator.className = "status-indicator expired";
+        }
+    }
+}
 
 // ==========================================
 // 1. Инициализация при загрузке страницы
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
+    applyTranslations();
     checkAuth();
     setupEscapeModalClose();
 });
@@ -187,40 +454,13 @@ function renderUserLoggedIn(user) {
     const cabEmail = document.getElementById("cabEmail");
     const cabHwid = document.getElementById("cabHwid");
     const cabAvatarLetter = document.getElementById("cabAvatarLetter");
-    const cabRoleBadge = document.getElementById("cabRoleBadge");
-    const subStatusText = document.getElementById("subStatusText");
-    const subDaysCount = document.getElementById("subDaysCount");
-    const subStatusIndicator = document.getElementById("subStatusIndicator");
 
     if (cabUsername) cabUsername.innerText = user.username;
     if (cabEmail) cabEmail.innerText = user.email;
-    if (cabHwid) cabHwid.innerText = user.hwid || "Не привязан (запустите лаунчер)";
+    if (cabHwid) cabHwid.innerText = user.hwid || (getI18nText("cab_hwid_none", "Не привязан") + " (" + getI18nText("cab_hwid_note", "Смена ПК через администратора") + ")");
     if (cabAvatarLetter) cabAvatarLetter.innerText = user.username.charAt(0).toUpperCase();
 
-    if (cabRoleBadge) {
-        if (user.is_admin === 1) {
-            cabRoleBadge.innerText = "⭐ ВЛАДЕЛЕЦ";
-            cabRoleBadge.className = "dash-user-role role-admin";
-        } else {
-            cabRoleBadge.innerText = "Пользователь";
-            cabRoleBadge.className = "dash-user-role";
-        }
-    }
-
-    // Статус подписки
-    if (user.is_active) {
-        if (subStatusText) subStatusText.innerText = "АКТИВНА";
-        if (subDaysCount) subDaysCount.innerText = `${user.remaining_days} дн. осталось`;
-        if (subStatusIndicator) {
-            subStatusIndicator.className = "status-indicator active";
-        }
-    } else {
-        if (subStatusText) subStatusText.innerText = "ИСТЕКЛА / НЕ АКТИВНА";
-        if (subDaysCount) subDaysCount.innerText = "0 дней";
-        if (subStatusIndicator) {
-            subStatusIndicator.className = "status-indicator expired";
-        }
-    }
+    updateDynamicUserTexts(user);
 
     // Если сейчас на главной странице для гостей — автоматически показываем кабинет
     const homeView = document.getElementById("homeView");
