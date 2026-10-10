@@ -435,7 +435,8 @@ async def admin_get_data(current_user: dict = Depends(get_current_user)):
         exp = u["sub_expires_at"] or 0
         u["days_left"] = max(0, round((exp - now) / 86400, 1))
 
-    return {"users": users, "keys": keys}
+    db_engine = "PostgreSQL (Neon Cloud)" if os.environ.get("DATABASE_URL") else "SQLite (Local Ephemeral)"
+    return {"users": users, "keys": keys, "db_engine": db_engine}
 
 @app.post("/api/admin/user_action")
 async def admin_user_action(req: AdminUserActionRequest, current_user: dict = Depends(get_current_user)):
@@ -476,6 +477,12 @@ async def admin_user_action(req: AdminUserActionRequest, current_user: dict = De
     elif req.action == "reset_hwid":
         cursor.execute("UPDATE users SET hwid = NULL WHERE id = ?", (target["id"],))
         msg = f"HWID пользователя {req.username} успешно сброшен!"
+    elif req.action == "delete_user":
+        if target["is_admin"] == 1:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Нельзя удалить администратора.")
+        cursor.execute("DELETE FROM users WHERE id = ?", (target["id"],))
+        msg = f"Пользователь {req.username} успешно удален из базы данных."
     elif req.action == "toggle_ban":
         new_ban = 0 if target["is_banned"] == 1 else 1
         cursor.execute("UPDATE users SET is_banned = ? WHERE id = ?", (new_ban, target["id"]))

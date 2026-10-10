@@ -705,6 +705,7 @@ async function loadAdminData() {
                         <button class="btn-mini" onclick="promptChangeDays('${escapeHtml(u.username)}')" title="Вказати свою кількість днів">±Дні</button>
                         <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'reset_hwid')">Сброс HWID</button>
                         <button class="${banBtnClass}" onclick="adminUserAction('${escapeHtml(u.username)}', 'toggle_ban')">${banBtnText}</button>
+                        <button class="btn-mini btn-action-delete" style="background: rgba(239, 68, 68, 0.35); border-color: rgba(239, 68, 68, 0.6); color: #fca5a5;" onclick="if(confirm('Ви точно хочете назавжди видалити користувача ${escapeHtml(u.username)}?')) adminUserAction('${escapeHtml(u.username)}', 'delete_user')" title="Видалити користувача">Видалити</button>
                     </td>
                 </tr>
             `;
