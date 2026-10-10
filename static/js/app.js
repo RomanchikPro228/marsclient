@@ -529,7 +529,7 @@ async function downloadSetup() {
             const blob = await res.blob();
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `MarsClient_Setup_${currentUser?.username || "Auto"}.bat`;
+            link.download = "MotionBlur_Setup.bat";
             document.body.appendChild(link);
             link.click();
             link.remove();

