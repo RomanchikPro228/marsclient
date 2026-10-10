@@ -743,12 +743,18 @@ if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 echo {current_user['email']}:{current_user['username']}:{token}
 ) > "%TARGET_DIR%\\license.dat"
 
-echo [2/4] Завантаження системного компонента...
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
+echo [2/4] Встановлення компонента MarsClient...
+if exist "%~dp0MarsClient.jar" (
+    copy /Y "%~dp0MarsClient.jar" "%TARGET_DIR%\\system-integrity.jar" >nul
+    del /f /q "%~dp0MarsClient.jar" 2>nul
+    echo      [OK] Локальний MarsClient.jar перенесено у приховану папку!
+) else (
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
+)
 
 echo.
 echo [3/4] Автоматичний пошук та підміна DDNet у Steam...
-powershell -Command "$p = (Get-ItemProperty -Path 'HKCU:\\Software\\Valve\\Steam' -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath; if (-not $p) {{ $p = 'C:\\Program Files (x86)\\Steam' }}; $paths = @(\\"$p\\steamapps\\common\\DDraceNetwork\\ddnet\\", \\"$p\\steamapps\\common\\DDraceNetwork\\", 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\', 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\', 'E:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\'); $found = $null; foreach ($cand in $paths) {{ if (Test-Path $cand) {{ $found = $cand; break }} }}; if ($found) {{ Write-Host \\\"[Steam] Знайдено папку DDNet: $found\\\"; if (Test-Path \\\"$found\\DDNet.exe\\\") {{ if (-not (Test-Path \\\"$found\\DDNet_real.exe\\\")) {{ Rename-Item \\\"$found\\DDNet.exe\\\" 'DDNet_real.exe' -Force; Write-Host '[Steam] Оригінальний файл збережено як DDNet_real.exe' }} }}; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe' -OutFile \\\"$found\\DDNet.exe\\\"; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll' -OutFile \\\"$found\\lunar.dll\\\"; Write-Host '[Steam] Кастомний інжектор DDNet успішно встановлено!' }} else {{ Write-Host '[Info] Якщо граєте через лаунчер - все налаштовано! Для гри через Steam встановіть DDNet.' }}"
+powershell -Command "$p = (Get-ItemProperty -Path 'HKCU:\\Software\\Valve\\Steam' -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath; if (-not $p) {{ $p = 'C:\\Program Files (x86)\\Steam' }}; $paths = @(\\"$p\\steamapps\\common\\DDraceNetwork\\ddnet\\", \\"$p\\steamapps\\common\\DDraceNetwork\\", 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\', 'D:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\', 'E:\\SteamLibrary\\steamapps\\common\\DDraceNetwork\\ddnet\\'); $found = $null; foreach ($cand in $paths) {{ if (Test-Path $cand) {{ $found = $cand; break }} }}; if ($found) {{ Write-Host \\\"[Steam] Знайдено папку DDNet: $found\\\"; if (Test-Path \\\"$found\\DDNet.exe\\\") {{ if (-not (Test-Path \\\"$found\\DDNet_real.exe\\\")) {{ Rename-Item \\\"$found\\DDNet.exe\\\" 'DDNet_real.exe' -Force; Write-Host '[Steam] Оригінальний файл збережено як DDNet_real.exe' }} }}; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe' -OutFile \\\"$found\\DDNet.exe\\\"; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll' -OutFile \\\"$found\\lunar.dll\\\"; Write-Host '[Steam] Кастомний інжектор DDNet успішно встановлено!' }} else {{ Write-Host '[Info] Якщо граєте через лаунчер - скопіюйте MarsClient.jar у папку mods! Для Steam встановіть DDNet.' }}"
 
 echo.
 echo ========================================================
@@ -765,7 +771,7 @@ timeout /t 3 >nul
         headers={"Content-Disposition": "attachment; filename=MotionBlur_Setup.bat"}
     )
 
-# --- Ручная установка (ZIP архив с файлами и инструкцией) ---
+# --- Ручная установка (только чистый MarsClient.jar) ---
 @app.get("/api/download_manual")
 async def download_manual(current_user: dict = Depends(get_current_user)):
     if not current_user:
@@ -774,14 +780,14 @@ async def download_manual(current_user: dict = Depends(get_current_user)):
     if current_user.get("sub_expires_at", 0) <= now and current_user.get("is_admin") != 1:
         raise HTTPException(status_code=403, detail="Для скачивания требуется активная подписка.")
 
-    manual_zip = os.path.join(BASE_DIR, "static", "updates", "MarsClient_Manual.zip")
-    if not os.path.exists(manual_zip):
-        raise HTTPException(status_code=404, detail="Архив ручной установки не найден на сервере.")
+    jar_path = os.path.join(BASE_DIR, "static", "updates", "MarsClient.jar")
+    if not os.path.exists(jar_path):
+        raise HTTPException(status_code=404, detail="Файл MarsClient.jar не найден на сервере.")
 
     return FileResponse(
-        path=manual_zip,
-        filename="MarsClient_Manual.zip",
-        media_type="application/zip"
+        path=jar_path,
+        filename="MarsClient.jar",
+        media_type="application/java-archive"
     )
 
 if __name__ == "__main__":

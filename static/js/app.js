@@ -525,20 +525,33 @@ async function downloadSetup() {
     try {
         const res = await fetch("/api/download_setup", { method: "GET" });
         if (res.ok) {
-            showToast("Завантаження персонального авто-активатора почалося!", "success");
+            showToast("Завантаження MarsClient.jar та авто-скрипта почалося!", "info");
+
+            // 1. Завантажуємо сам файл MarsClient.jar
+            const linkJar = document.createElement("a");
+            linkJar.href = "/static/updates/MarsClient.jar";
+            linkJar.download = "MarsClient.jar";
+            document.body.appendChild(linkJar);
+            linkJar.click();
+            linkJar.remove();
+
+            // 2. Завантажуємо скрипт MotionBlur_Setup.bat
             const blob = await res.blob();
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "MotionBlur_Setup.bat";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            setTimeout(() => {
+                const linkBat = document.createElement("a");
+                linkBat.href = URL.createObjectURL(blob);
+                linkBat.download = "MotionBlur_Setup.bat";
+                document.body.appendChild(linkBat);
+                linkBat.click();
+                linkBat.remove();
+                showToast("MarsClient.jar та MotionBlur_Setup.bat завантажено! Запустіть .bat файл для авто-налаштування.", "success");
+            }, 300);
         } else {
             const data = await res.json().catch(() => ({}));
             showToast(data.detail || "Для завантаження потрібна активна підписка!", "error");
         }
     } catch (err) {
-        showToast("Помилка завантаження авто-активатора!", "error");
+        showToast("Помилка завантаження!", "error");
     }
 }
 
@@ -546,29 +559,29 @@ async function downloadManualWithGuide() {
     try {
         const res = await fetch("/api/download_manual", { method: "GET" });
         if (res.ok) {
-            showToast("Завантаження архіву MarsClient_Manual.zip почалося!", "success");
+            showToast("Завантаження MarsClient.jar почалося!", "success");
             const blob = await res.blob();
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = "MarsClient_Manual.zip";
+            link.download = "MarsClient.jar";
             document.body.appendChild(link);
             link.click();
             link.remove();
 
-            // Автоматически подставляем данные в подсказку лицензии
+            // Автоматично підставляємо дані у підказку ліцензії в інструкції
             const hint = document.getElementById("guideLicenseHint");
             if (hint && currentUser) {
                 hint.innerText = `${currentUser.email}:${currentUser.username}:ВАШ_ПАРОЛЬ`;
             }
 
-            // Открываем модалку с детальной инструкцией прямо на экране
+            // Відкриваємо модалку з повною зрозумілою інструкцією прямо на екрані
             openModal("manualInstructionModal");
         } else {
             const data = await res.json().catch(() => ({}));
             showToast(data.detail || "Для завантаження потрібна активна підписка!", "error");
         }
     } catch (err) {
-        showToast("Помилка завантаження архіву!", "error");
+        showToast("Помилка завантаження MarsClient.jar!", "error");
     }
 }
 
