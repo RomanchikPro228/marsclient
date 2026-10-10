@@ -12,9 +12,9 @@ let currentLang = localStorage.getItem("mars_lang") || "ru";
 // ==========================================
 const I18N = {
     ru: {
-        currency_30: "180 ₽",
-        currency_90: "450 ₽",
-        currency_life: "900 ₽",
+        currency_30: "150 ₽",
+        currency_90: "350 ₽",
+        currency_life: "700 ₽",
         brand_sub: "ОФИЦИАЛЬНЫЙ ПОРТАЛ",
         nav_store: "Купить",
         nav_cabinet: "Личный кабинет",
@@ -69,7 +69,56 @@ const I18N = {
         cab_key_desc: "Введите полученный после покупки ключ, чтобы активировать или продлить дни подписки:",
         cab_btn_activate: "Активировать ключ",
         admin_title: "ПАНЕЛЬ <span class=\"gradient-text\">ВЛАДЕЛЬЦА</span>",
-        admin_sub: "Управление ключами FunPay, подписками и блокировками"
+        admin_sub: "Управление ключами FunPay, подписками и блокировками",
+        admin_gen_title: "⚡ Генератор ключей для FunPay",
+        admin_gen_days_lbl: "Срок подписки:",
+        admin_gen_days_30: "30 Дней",
+        admin_gen_days_90: "90 Дней",
+        admin_gen_days_life: "Навсегда (Lifetime)",
+        admin_gen_count_lbl: "Количество ключей:",
+        admin_gen_btn: "Сгенерировать",
+        admin_gen_res_title: "Готовые ключи (скопируйте в лот FunPay):",
+        admin_gen_copy_all: "Копировать все",
+        admin_upd_title: "🚀 Авто-обновление клиента для всех игроков",
+        admin_upd_sub: "Публикация обновлений в 1 клик — без ручного ввода версий или файлов",
+        admin_upd_ver_prefix: "Текущая версия: ",
+        admin_upd_step1: "<strong>Вы тестируете обновление:</strong> После добавления или фикса функций (TriggerBot, AimAssist и т.д.) вы проверяете все в Minecraft.",
+        admin_upd_step2: "<strong>1 клик на сайте:</strong> Нажимаете кнопку ниже — и новая версия мгновенно становится доступной для игроков.",
+        admin_upd_step3: "<strong>Игроки обновлены:</strong> При перезапуске лаунчера у всех игроков скачается обновление. Конфиги и бинды 100% сохранены!",
+        admin_upd_publish_btn: "Опубликовать обновление для всех",
+        admin_upd_ready: "Готово к запуску обновления",
+        admin_upd_processing: "Обновление регистрируется...",
+        admin_upd_publishing: "Публикация новой версии на сервере...",
+        admin_upd_active_msg: "Версия v{VER} активна для всех игроков",
+        admin_upd_updated_at: "(обновлено в {TIME})",
+        admin_users_title: "Список пользователей",
+        admin_users_refresh: "Обновить данные",
+        th_id: "ID",
+        th_login: "Логин",
+        th_email: "Почта",
+        th_days_left: "Дней осталось",
+        th_hwid: "HWID",
+        th_status: "Статус",
+        th_actions: "Действия",
+        tbl_loading: "Загрузка данных...",
+        tbl_error: "Ошибка загрузки данных",
+        tbl_empty: "Пользователей пока нет",
+        badge_banned: "Бан",
+        badge_active: "Активен",
+        badge_expired: "Истек",
+        hwid_none: "Нет",
+        act_add30_hint: "Добавить 30 дней",
+        act_remove30_hint: "Забрать 30 дней",
+        act_custom_days: "±Дни",
+        act_custom_days_hint: "Указать количество дней",
+        act_reset_hwid: "Сброс HWID",
+        act_ban: "Бан",
+        act_unban: "Разбанить",
+        act_delete: "Удалить",
+        act_delete_confirm: "Вы точно хотите навсегда удалить пользователя {USER}?",
+        prompt_days: "Изменение подписки для {USER}.\nВведите количество дней (например, 15 чтобы добавить, или -10 чтобы отнять, или 0 чтобы обнулить подписку):",
+        toast_keys_copied: "Все ключи скопированы в буфер обмена!",
+        toast_keys_gen: "Сгенерировано ключей: "
     },
     ua: {
         currency_30: "80 грн",
@@ -129,7 +178,56 @@ const I18N = {
         cab_key_desc: "Введіть отриманий після покупки ключ, щоб активувати або продовжити дні підписки:",
         cab_btn_activate: "Активувати ключ",
         admin_title: "ПАНЕЛЬ <span class=\"gradient-text\">ВЛАСНИКА</span>",
-        admin_sub: "Керування ключами FunPay, підписками та блокуваннями"
+        admin_sub: "Керування ключами FunPay, підписками та блокуваннями",
+        admin_gen_title: "⚡ Генератор ключів для FunPay",
+        admin_gen_days_lbl: "Термін підписки:",
+        admin_gen_days_30: "30 Днів",
+        admin_gen_days_90: "90 Днів",
+        admin_gen_days_life: "Назавжди (Lifetime)",
+        admin_gen_count_lbl: "Кількість ключів:",
+        admin_gen_btn: "Згенерувати",
+        admin_gen_res_title: "Готові ключі (скопіюйте в лот FunPay):",
+        admin_gen_copy_all: "Скопіювати все",
+        admin_upd_title: "🚀 Авто-оновлення клієнта для всіх гравців",
+        admin_upd_sub: "Публікація оновлень в 1 клік — без ручного введення версій чи файлів",
+        admin_upd_ver_prefix: "Поточна версія: ",
+        admin_upd_step1: "<strong>Ви тестуєте оновлення:</strong> Після додавання або фіксу функцій (TriggerBot, AimAssist тощо) ви перевіряєте все в Minecraft.",
+        admin_upd_step2: "<strong>1 клік на сайті:</strong> Натискаєте кнопку нижче — і нова версія миттєво стає доступною для гравців.",
+        admin_upd_step3: "<strong>Гравці оновлені:</strong> При перезапуску лаунчера у всіх гравців завантажиться оновлення. Конфіги та бінди 100% збережені!",
+        admin_upd_publish_btn: "Опублікувати оновлення для всіх",
+        admin_upd_ready: "Готово до запуску оновлення",
+        admin_upd_processing: "Оновлення реєструється...",
+        admin_upd_publishing: "Публікація нової версії на сервері...",
+        admin_upd_active_msg: "Версія v{VER} активна для всіх гравців",
+        admin_upd_updated_at: "(оновлено о {TIME})",
+        admin_users_title: "Список користувачів",
+        admin_users_refresh: "Оновити дані",
+        th_id: "ID",
+        th_login: "Логін",
+        th_email: "Пошта",
+        th_days_left: "Днів залишилось",
+        th_hwid: "HWID",
+        th_status: "Статус",
+        th_actions: "Дії",
+        tbl_loading: "Завантаження даних...",
+        tbl_error: "Помилка завантаження даних",
+        tbl_empty: "Користувачів поки немає",
+        badge_banned: "Бан",
+        badge_active: "Активний",
+        badge_expired: "Закінчився",
+        hwid_none: "Немає",
+        act_add30_hint: "Додати 30 днів",
+        act_remove30_hint: "Забрати 30 днів",
+        act_custom_days: "±Дні",
+        act_custom_days_hint: "Вказати кількість днів",
+        act_reset_hwid: "Скинути HWID",
+        act_ban: "Бан",
+        act_unban: "Розбанити",
+        act_delete: "Видалити",
+        act_delete_confirm: "Ви точно хочете назавжди видалити користувача {USER}?",
+        prompt_days: "Зміна підписки для {USER}.\nВведіть кількість днів (наприклад, 15 щоб додати, або -10 щоб забрати, або 0 щоб повністю зняти підписку):",
+        toast_keys_copied: "Всі ключі скопійовано в буфер обміну!",
+        toast_keys_gen: "Згенеровано ключів: "
     },
     en: {
         currency_30: "$1.99",
@@ -189,7 +287,56 @@ const I18N = {
         cab_key_desc: "Enter your purchased key below to activate or extend subscription days:",
         cab_btn_activate: "Activate Key",
         admin_title: "OWNER <span class=\"gradient-text\">PANEL</span>",
-        admin_sub: "Manage FunPay keys, user subscriptions and bans"
+        admin_sub: "Manage FunPay keys, user subscriptions and bans",
+        admin_gen_title: "⚡ Key Generator for FunPay",
+        admin_gen_days_lbl: "Subscription duration:",
+        admin_gen_days_30: "30 Days",
+        admin_gen_days_90: "90 Days",
+        admin_gen_days_life: "Lifetime",
+        admin_gen_count_lbl: "Number of keys:",
+        admin_gen_btn: "Generate",
+        admin_gen_res_title: "Generated keys (copy to FunPay listing):",
+        admin_gen_copy_all: "Copy All",
+        admin_upd_title: "🚀 Client Auto-Updater for all players",
+        admin_upd_sub: "1-Click update release — no manual versioning or file uploads needed",
+        admin_upd_ver_prefix: "Current version: ",
+        admin_upd_step1: "<strong>You test the update:</strong> After adding or fixing features (TriggerBot, AimAssist, etc.) you test everything in Minecraft.",
+        admin_upd_step2: "<strong>1 click on website:</strong> Click the button below — and the new version is instantly available to players.",
+        admin_upd_step3: "<strong>Players updated:</strong> When restarting the launcher, all players receive the update. Configs and binds 100% preserved!",
+        admin_upd_publish_btn: "Publish Update for All Players",
+        admin_upd_ready: "Ready to publish update",
+        admin_upd_processing: "Publishing update...",
+        admin_upd_publishing: "Publishing new version on server...",
+        admin_upd_active_msg: "Version v{VER} is active for all players",
+        admin_upd_updated_at: "(updated at {TIME})",
+        admin_users_title: "User Management",
+        admin_users_refresh: "Refresh Data",
+        th_id: "ID",
+        th_login: "Username",
+        th_email: "Email",
+        th_days_left: "Days Left",
+        th_hwid: "HWID",
+        th_status: "Status",
+        th_actions: "Actions",
+        tbl_loading: "Loading data...",
+        tbl_error: "Error loading data",
+        tbl_empty: "No users found",
+        badge_banned: "Banned",
+        badge_active: "Active",
+        badge_expired: "Expired",
+        hwid_none: "None",
+        act_add30_hint: "Add 30 days",
+        act_remove30_hint: "Remove 30 days",
+        act_custom_days: "±Days",
+        act_custom_days_hint: "Set custom days",
+        act_reset_hwid: "Reset HWID",
+        act_ban: "Ban",
+        act_unban: "Unban",
+        act_delete: "Delete",
+        act_delete_confirm: "Are you sure you want to permanently delete user {USER}?",
+        prompt_days: "Subscription change for {USER}.\nEnter days amount (e.g. 15 to add, -10 to remove, 0 to revoke):",
+        toast_keys_copied: "All keys copied to clipboard!",
+        toast_keys_gen: "Keys generated: "
     }
 };
 
@@ -198,6 +345,12 @@ function switchLanguage(lang) {
     currentLang = lang;
     localStorage.setItem("mars_lang", lang);
     applyTranslations();
+
+    // Якщо відкрита адмін-панель або завантажена таблиця, оновлюємо таблицю користувачів
+    const adminView = document.getElementById("adminView");
+    if (adminView && adminView.classList.contains("active")) {
+        loadAdminData();
+    }
 }
 
 function getI18nText(key, fallback = "") {
@@ -876,7 +1029,8 @@ async function handleAdminGenKeys(e) {
             const textarea = document.getElementById("genKeysTextarea");
             textarea.value = data.keys.join("\n");
             resultBox.style.display = "block";
-            showToast(`Сгенерировано ключей: ${data.keys.length}`, "success");
+            const prefix = getI18nText("toast_keys_gen", "Сгенерировано ключей: ");
+            showToast(`${prefix}${data.keys.length}`, "success");
         } else {
             showToast(data.detail || "Ошибка генерации ключей", "error");
         }
@@ -888,12 +1042,13 @@ async function handleAdminGenKeys(e) {
 function copyGeneratedKeys() {
     const textarea = document.getElementById("genKeysTextarea");
     if (!textarea || !textarea.value) return;
+    const msg = getI18nText("toast_keys_copied", "Все ключи скопированы в буфер обмена!");
     navigator.clipboard.writeText(textarea.value).then(() => {
-        showToast("Все ключи скопированы в буфер обмена!", "success");
+        showToast(msg, "success");
     }).catch(() => {
         textarea.select();
         document.execCommand("copy");
-        showToast("Ключи скопированы!", "success");
+        showToast(msg, "success");
     });
 }
 
@@ -904,12 +1059,12 @@ async function loadAdminData() {
     const tbody = document.getElementById("adminUsersTbody");
     if (!tbody) return;
 
-    tbody.innerHTML = '<tr><td colspan="7" class="loading-td">Загрузка данных...</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-td">${getI18nText("tbl_loading", "Загрузка данных...")}</td></tr>`;
 
     try {
         const res = await fetch("/api/admin/data", { method: "GET" });
         if (!res.ok) {
-            tbody.innerHTML = '<tr><td colspan="7" class="loading-td error">Ошибка загрузки данных</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-td error">${getI18nText("tbl_error", "Ошибка загрузки данных")}</td></tr>`;
             return;
         }
 
@@ -917,18 +1072,32 @@ async function loadAdminData() {
         const users = data.users || [];
 
         if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="loading-td">Пользователей пока нет</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-td">${getI18nText("tbl_empty", "Пользователей пока нет")}</td></tr>`;
             return;
         }
+
+        const daysSuffix = getI18nText("badge_days_suffix", "дн.");
+        const textBanned = getI18nText("badge_banned", "Бан");
+        const textActive = getI18nText("badge_active", "Активен");
+        const textExpired = getI18nText("badge_expired", "Истек");
+        const textHwidNone = getI18nText("hwid_none", "Нет");
+        const textAdd30Hint = getI18nText("act_add30_hint", "Добавить 30 дней");
+        const textRemove30Hint = getI18nText("act_remove30_hint", "Забрать 30 дней");
+        const textCustomDays = getI18nText("act_custom_days", "±Дни");
+        const textCustomDaysHint = getI18nText("act_custom_days_hint", "Указать количество дней");
+        const textResetHwid = getI18nText("act_reset_hwid", "Сброс HWID");
+        const textBan = getI18nText("act_ban", "Бан");
+        const textUnban = getI18nText("act_unban", "Разбанить");
+        const textDelete = getI18nText("act_delete", "Удалить");
 
         tbody.innerHTML = users.map((u) => {
             const isBanned = u.is_banned === 1;
             const statusBadge = isBanned 
-                ? '<span class="table-badge badge-banned">Бан</span>'
-                : (u.days_left > 0 ? '<span class="table-badge badge-active">Активен</span>' : '<span class="table-badge badge-inactive">Истек</span>');
+                ? `<span class="table-badge badge-banned">${textBanned}</span>`
+                : (u.days_left > 0 ? `<span class="table-badge badge-active">${textActive}</span>` : `<span class="table-badge badge-inactive">${textExpired}</span>`);
 
-            const hwidDisplay = u.hwid ? `<span class="hwid-short" title="${u.hwid}">${u.hwid.substring(0, 10)}...</span>` : '<span class="text-muted">Нет</span>';
-            const banBtnText = isBanned ? "Разбанить" : "Бан";
+            const hwidDisplay = u.hwid ? `<span class="hwid-short" title="${u.hwid}">${u.hwid.substring(0, 10)}...</span>` : `<span class="text-muted">${textHwidNone}</span>`;
+            const banBtnText = isBanned ? textUnban : textBan;
             const banBtnClass = isBanned ? "btn-mini btn-action-unban" : "btn-mini btn-action-ban";
 
             return `
@@ -936,26 +1105,33 @@ async function loadAdminData() {
                     <td>#${u.id}</td>
                     <td><strong>${escapeHtml(u.username)}</strong> ${u.is_admin === 1 ? '<span class="admin-star">★</span>' : ''}</td>
                     <td>${escapeHtml(u.email)}</td>
-                    <td><strong>${u.days_left}</strong> дн.</td>
+                    <td><strong>${u.days_left}</strong> ${daysSuffix}</td>
                     <td>${hwidDisplay}</td>
                     <td>${statusBadge}</td>
                     <td class="action-buttons-cell">
-                        <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'add_days', 30)" title="Додати 30 днів">+30д</button>
-                        <button class="btn-mini" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);" onclick="adminUserAction('${escapeHtml(u.username)}', 'remove_days', 30)" title="Забрати 30 днів">-30д</button>
-                        <button class="btn-mini" onclick="promptChangeDays('${escapeHtml(u.username)}')" title="Вказати свою кількість днів">±Дні</button>
-                        <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'reset_hwid')">Сброс HWID</button>
+                        <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'add_days', 30)" title="${textAdd30Hint}">+30д</button>
+                        <button class="btn-mini" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);" onclick="adminUserAction('${escapeHtml(u.username)}', 'remove_days', 30)" title="${textRemove30Hint}">-30д</button>
+                        <button class="btn-mini" onclick="promptChangeDays('${escapeHtml(u.username)}')" title="${textCustomDaysHint}">${textCustomDays}</button>
+                        <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'reset_hwid')">${textResetHwid}</button>
                         <button class="${banBtnClass}" onclick="adminUserAction('${escapeHtml(u.username)}', 'toggle_ban')">${banBtnText}</button>
-                        <button class="btn-mini btn-action-delete" style="background: rgba(239, 68, 68, 0.35); border-color: rgba(239, 68, 68, 0.6); color: #fca5a5;" onclick="if(confirm('Ви точно хочете назавжди видалити користувача ${escapeHtml(u.username)}?')) adminUserAction('${escapeHtml(u.username)}', 'delete_user')" title="Видалити користувача">Видалити</button>
+                        <button class="btn-mini btn-action-delete" style="background: rgba(239, 68, 68, 0.35); border-color: rgba(239, 68, 68, 0.6); color: #fca5a5;" onclick="confirmDeleteUser('${escapeHtml(u.username)}')" title="${textDelete}">${textDelete}</button>
                     </td>
                 </tr>
             `;
         }).join("");
     } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading-td error">Сбой подключения</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" class="loading-td error">${getI18nText("tbl_error", "Ошибка загрузки данных")}</td></tr>`;
     }
 
     // Завантажуємо статус релізів
     loadAdminReleases();
+}
+
+function confirmDeleteUser(username) {
+    const tmpl = getI18nText("act_delete_confirm", "Вы точно хотите навсегда удалить пользователя {USER}?");
+    if (confirm(tmpl.replace("{USER}", username))) {
+        adminUserAction(username, 'delete_user');
+    }
 }
 
 // Завантаження статусу версій оновлень
@@ -967,17 +1143,21 @@ async function loadAdminReleases() {
             const badge = document.getElementById("activeReleaseBadge");
             const statusText = document.getElementById("updaterStatusText");
 
+            const verPrefix = getI18nText("admin_upd_ver_prefix", "Поточна версія: ");
             if (data.latest) {
                 const ver = data.latest.version || "1.0.0";
                 if (badge) {
-                    badge.innerText = `Поточна версія: v${ver}`;
+                    badge.innerText = `${verPrefix}v${ver}`;
                 }
                 if (statusText) {
                     const dateStr = data.latest.created_at ? new Date(data.latest.created_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
-                    statusText.innerText = `Версія v${ver} активна для всіх гравців ${dateStr ? `(оновлено о ${dateStr})` : ''}`;
+                    const tmpl = getI18nText("admin_upd_active_msg", "Версія v{VER} активна для всіх гравців");
+                    const updatedTmpl = getI18nText("admin_upd_updated_at", "(оновлено о {TIME})");
+                    const timePart = dateStr ? " " + updatedTmpl.replace("{TIME}", dateStr) : "";
+                    statusText.innerText = tmpl.replace("{VER}", ver) + timePart;
                 }
             } else if (badge) {
-                badge.innerText = "Поточна версія: v1.0.0";
+                badge.innerText = `${verPrefix}v1.0.0`;
             }
         }
     } catch (e) {}
@@ -991,10 +1171,11 @@ async function handleOneClickUpdate() {
 
     btn.disabled = true;
     const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<span class="btn-glow-icon">⏳</span> <span>Оновлення реєструється...</span>';
+    const processingText = getI18nText("admin_upd_processing", "Оновлення реєструється...");
+    btn.innerHTML = `<span class="btn-glow-icon">⏳</span> <span>${processingText}</span>`;
 
     if (statusText) {
-        statusText.innerText = "Публікація нової версії на сервері...";
+        statusText.innerText = getI18nText("admin_upd_publishing", "Публікація нової версії на сервері...");
     }
 
     try {
@@ -1050,7 +1231,8 @@ async function adminUserAction(username, action, days = 0) {
 }
 
 function promptChangeDays(username) {
-    const val = prompt(`Зміна підписки для ${username}.\nВведіть кількість днів (наприклад, 15 щоб додати, або -10 щоб забрати, або 0 щоб повністю зняти підписку):`, "30");
+    const tmpl = getI18nText("prompt_days", "Зміна підписки для {USER}.\nВведіть кількість днів (наприклад, 15 щоб додати, або -10 щоб забрати, або 0 щоб повністю зняти підписку):");
+    const val = prompt(tmpl.replace("{USER}", username), "30");
     if (val === null) return;
     const trimmed = val.trim();
     if (!trimmed) return;

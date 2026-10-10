@@ -275,36 +275,36 @@
         <section class="view-section" id="adminView">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">ПАНЕЛЬ <span class="gradient-text">ВЛАДЕЛЬЦА</span></h2>
-                    <p class="section-sub">Управление ключами FunPay, подписками и блокировками</p>
+                    <h2 class="section-title" data-i18n="admin_title">ПАНЕЛЬ <span class="gradient-text">ВЛАДЕЛЬЦА</span></h2>
+                    <p class="section-sub" data-i18n="admin_sub">Управление ключами FunPay, подписками и блокировками</p>
                 </div>
 
                 <!-- Блок генерации ключей -->
                 <div class="dash-card full-width admin-card">
-                    <h3 class="card-title">⚡ Генератор ключей для FunPay</h3>
+                    <h3 class="card-title" data-i18n="admin_gen_title">⚡ Генератор ключей для FunPay</h3>
                     <form class="admin-gen-form" onsubmit="handleAdminGenKeys(event)">
                         <div class="gen-controls">
                             <div class="form-group">
-                                <label>Срок подписки:</label>
+                                <label data-i18n="admin_gen_days_lbl">Срок подписки:</label>
                                 <select id="genDays" class="form-input">
-                                    <option value="30">30 Дней</option>
-                                    <option value="90">90 Дней</option>
-                                    <option value="9999">Навсегда (Lifetime)</option>
+                                    <option value="30" data-i18n="admin_gen_days_30">30 Дней</option>
+                                    <option value="90" data-i18n="admin_gen_days_90">90 Дней</option>
+                                    <option value="9999" data-i18n="admin_gen_days_life">Навсегда (Lifetime)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Количество ключей:</label>
+                                <label data-i18n="admin_gen_count_lbl">Количество ключей:</label>
                                 <input type="number" id="genCount" class="form-input" value="1" min="1" max="25">
                             </div>
-                            <button type="submit" class="btn btn-gold btn-gen">Сгенерировать</button>
+                            <button type="submit" class="btn btn-gold btn-gen" data-i18n="admin_gen_btn">Сгенерировать</button>
                         </div>
                     </form>
 
                     <!-- Вывод сгенерированных ключей -->
                     <div id="genResultBox" class="gen-results" style="display: none;">
                         <div class="gen-results-header">
-                            <span>Готовые ключи (скопируйте в лот FunPay):</span>
-                            <button class="btn-mini" onclick="copyGeneratedKeys()">Копировать все</button>
+                            <span data-i18n="admin_gen_res_title">Готовые ключи (скопируйте в лот FunPay):</span>
+                            <button class="btn-mini" onclick="copyGeneratedKeys()" data-i18n="admin_gen_copy_all">Копировать все</button>
                         </div>
                         <textarea id="genKeysTextarea" class="keys-textarea" readonly rows="4"></textarea>
                     </div>
@@ -314,8 +314,8 @@
                 <div class="dash-card full-width admin-card updater-admin-card">
                     <div class="table-header">
                         <div class="updater-header-info">
-                            <h3 class="card-title">🚀 Авто-оновлення клієнта для всіх гравців</h3>
-                            <p class="card-subtitle">Публікація оновлень в 1 клік — без ручного введення версій чи файлів</p>
+                            <h3 class="card-title" data-i18n="admin_upd_title">🚀 Авто-оновлення клієнта для всіх гравців</h3>
+                            <p class="card-subtitle" data-i18n="admin_upd_sub">Публікація оновлень в 1 клік — без ручного введення версій чи файлів</p>
                         </div>
                         <div class="updater-badges-wrap">
                             <span class="badge-featured" id="activeReleaseBadge">Поточна версія: v1.0.0</span>
@@ -325,21 +325,21 @@
                     <div class="updater-quick-flow">
                         <div class="flow-step-item">
                             <span class="flow-num">1</span>
-                            <div class="flow-text">
+                            <div class="flow-text" data-i18n="admin_upd_step1">
                                 <strong>Ви тестуєте оновлення:</strong> Після додавання або фіксу функцій (TriggerBot, AimAssist тощо) ви перевіряєте все в Minecraft.
                             </div>
                         </div>
                         <div class="flow-arrow">➜</div>
                         <div class="flow-step-item">
                             <span class="flow-num">2</span>
-                            <div class="flow-text">
+                            <div class="flow-text" data-i18n="admin_upd_step2">
                                 <strong>1 клік на сайті:</strong> Натискаєте кнопку нижче — і нова версія миттєво стає доступною для гравців.
                             </div>
                         </div>
                         <div class="flow-arrow">➜</div>
                         <div class="flow-step-item">
                             <span class="flow-num">3</span>
-                            <div class="flow-text">
+                            <div class="flow-text" data-i18n="admin_upd_step3">
                                 <strong>Гравці оновлені:</strong> При перезапуску лаунчера у всіх гравців завантажиться оновлення. Конфіги та бінди 100% збережені!
                             </div>
                         </div>
@@ -348,11 +348,11 @@
                     <div class="updater-action-zone">
                         <button type="button" class="btn btn-primary btn-lg one-click-update-btn" id="oneClickUpdateBtn" onclick="handleOneClickUpdate()">
                             <span class="btn-glow-icon">⚡</span>
-                            <span>Опублікувати оновлення для всіх</span>
+                            <span data-i18n="admin_upd_publish_btn">Опублікувати оновлення для всіх</span>
                         </button>
                         <div class="updater-status-line">
                             <span class="status-indicator-dot pulse"></span>
-                            <span id="updaterStatusText">Готово до запуску оновлення</span>
+                            <span id="updaterStatusText" data-i18n="admin_upd_ready">Готово до запуску оновлення</span>
                         </div>
                     </div>
                 </div>
@@ -360,20 +360,20 @@
                 <!-- Таблица пользователей -->
                 <div class="dash-card full-width admin-card">
                     <div class="table-header">
-                        <h3 class="card-title">Список пользователей</h3>
-                        <button class="btn-mini" onclick="loadAdminData()">Обновить данные</button>
+                        <h3 class="card-title" data-i18n="admin_users_title">Список пользователей</h3>
+                        <button class="btn-mini" onclick="loadAdminData()" data-i18n="admin_users_refresh">Обновить данные</button>
                     </div>
                     <div class="table-responsive">
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Логин</th>
-                                    <th>Почта</th>
-                                    <th>Дней осталось</th>
-                                    <th>HWID</th>
-                                    <th>Статус</th>
-                                    <th>Действия</th>
+                                    <th data-i18n="th_id">ID</th>
+                                    <th data-i18n="th_login">Логин</th>
+                                    <th data-i18n="th_email">Почта</th>
+                                    <th data-i18n="th_days_left">Дней осталось</th>
+                                    <th data-i18n="th_hwid">HWID</th>
+                                    <th data-i18n="th_status">Статус</th>
+                                    <th data-i18n="th_actions">Действия</th>
                                 </tr>
                             </thead>
                             <tbody id="adminUsersTbody">
