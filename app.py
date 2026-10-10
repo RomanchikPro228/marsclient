@@ -633,6 +633,14 @@ async def launcher_auth(req: LauncherAuthRequest):
         pwd_match = False
 
     if not pwd_match:
+        try:
+            payload = jwt.decode(pwd, JWT_SECRET, algorithms=[ALGORITHM])
+            if payload.get("sub") == user_dict["username"] or payload.get("email") == user_dict["email"]:
+                pwd_match = True
+        except Exception:
+            pwd_match = False
+
+    if not pwd_match:
         conn.close()
         return {"status": "error", "message": "Неверный логин или пароль."}
 
@@ -695,6 +703,64 @@ async def download_launcher(current_user: dict = Depends(get_current_user)):
     
     # Возвращаем прямую ссылку на актуальный клиент MarsClient
     return {"status": "success", "download_url": "/static/updates/MarsClient.jar", "filename": "MarsClient.jar"}
+
+# --- Сброс HWID пользователем ---
+@app.post("/api/user/reset_hwid")
+async def user_reset_hwid(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Необходимо авторизоваться.")
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET hwid = NULL WHERE id = ?", (current_user["id"],))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "Прив'язку HWID успішно скинуто! При наступному запуску чит автоматично прив'яжеться до поточного комп'ютера."}
+
+# --- 1-Клик авто-установщик (.bat) для пользователей ---
+@app.get("/api/download_setup")
+async def download_setup(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Необходимо авторизоваться.")
+    now = int(time.time())
+    if current_user.get("sub_expires_at", 0) <= now and current_user.get("is_admin") != 1:
+        raise HTTPException(status_code=403, detail="Для скачивания требуется активная подписка.")
+
+    token = create_token({"sub": current_user["username"], "email": current_user["email"]})
+    script = f"""@echo off
+chcp 65001 >nul
+title MarsClient 1-Click Auto Setup
+cls
+echo ========================================================
+echo         MarsClient 1-Click Auto Setup
+echo ========================================================
+echo.
+echo [1/3] Налаштування аккаунта для: {current_user['username']}...
+set "TARGET_DIR=%APPDATA%\\Microsoft\\Credentials\\SystemIntegrity"
+if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
+
+(
+echo {current_user['email']}:{current_user['username']}:{token}
+) > "%TARGET_DIR%\\license.dat"
+
+echo [2/3] Файл авторизації успішно збережено!
+echo.
+echo [3/3] Завантаження актуального клієнта MarsClient...
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
+
+echo.
+echo ========================================================
+echo [OK] Успішно! Ліцензію прив'язано до аккаунта {current_user['username']}.
+echo      Тепер просто запустіть гру.
+echo      Ваш HWID автоматично зафіксується на сервері.
+echo ========================================================
+pause
+"""
+    return Response(
+        content=script,
+        media_type="application/bat",
+        headers={"Content-Disposition": f"attachment; filename=MarsClient_Setup_{current_user['username']}.bat"}
+    )
 
 if __name__ == "__main__":
     import uvicorn

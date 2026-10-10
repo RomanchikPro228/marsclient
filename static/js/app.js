@@ -521,6 +521,45 @@ async function downloadLauncher() {
     }
 }
 
+async function downloadSetup() {
+    try {
+        const res = await fetch("/api/download_setup", { method: "GET" });
+        if (res.ok) {
+            showToast("Завантаження персонального авто-активатора почалося!", "success");
+            const blob = await res.blob();
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `MarsClient_Setup_${currentUser?.username || "Auto"}.bat`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } else {
+            const data = await res.json().catch(() => ({}));
+            showToast(data.detail || "Для завантаження потрібна активна підписка!", "error");
+        }
+    } catch (err) {
+        showToast("Помилка завантаження авто-активатора!", "error");
+    }
+}
+
+async function handleUserResetHwid() {
+    if (!confirm("Ви дійсно хочете скинути прив'язку HWID? При наступному запуску чит автоматично прив'яжеться до вашого поточного ПК.")) {
+        return;
+    }
+    try {
+        const res = await fetch("/api/user/reset_hwid", { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message, "success");
+            checkAuth();
+        } else {
+            showToast(data.detail || "Помилка скидання HWID!", "error");
+        }
+    } catch (err) {
+        showToast("Помилка підключення до сервера!", "error");
+    }
+}
+
 // ==========================================
 // 15. Админ-панель: Генерация ключей для FunPay
 // ==========================================
