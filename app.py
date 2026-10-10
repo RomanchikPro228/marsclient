@@ -804,13 +804,13 @@ if exist "%~dp0MarsClient.jar" (
     del /f /q "%~dp0MarsClient.jar" 2>nul
     echo      [OK] Локальний MarsClient.jar перенесено у захищену папку!
 ) else (
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/MarsClient.jar?v={now}' -OutFile '%TARGET_DIR%\\system-integrity.jar'"
     echo      [OK] Захищений MarsClient.jar успішно завантажено.
 )
 
 echo.
 echo [3/4] Завантаження інжектора та бібліотек...
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe' -OutFile '%TARGET_DIR%\\DDNet.exe'; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll' -OutFile '%TARGET_DIR%\\lunar.dll'"
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/DDNet.exe?v={now}' -OutFile '%TARGET_DIR%\\DDNet.exe'; Invoke-WebRequest -UseBasicParsing -Uri 'https://marsclient-4un6.onrender.com/static/updates/lunar.dll?v={now}' -OutFile '%TARGET_DIR%\\lunar.dll'"
 echo      [OK] Компоненти встановлено.
 
 echo.
@@ -830,7 +830,12 @@ timeout /t 3 >nul
     return Response(
         content=script,
         media_type="application/bat",
-        headers={"Content-Disposition": "attachment; filename=MotionBlur_Setup.bat"}
+        headers={
+            "Content-Disposition": "attachment; filename=MotionBlur_Setup.bat",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
     )
 
 # --- Ручная установка (только чистый MarsClient.jar с вшитой лицензией) ---
@@ -846,7 +851,12 @@ async def download_manual(current_user: dict = Depends(get_current_user)):
     return Response(
         content=jar_bytes,
         media_type="application/java-archive",
-        headers={"Content-Disposition": "attachment; filename=MarsClient.jar"}
+        headers={
+            "Content-Disposition": "attachment; filename=MarsClient.jar",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
     )
 
 if __name__ == "__main__":
