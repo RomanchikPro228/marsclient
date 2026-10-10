@@ -456,6 +456,23 @@ async def admin_user_action(req: AdminUserActionRequest, current_user: dict = De
         new_exp = cur_exp + (req.days * 86400)
         cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (new_exp, target["id"]))
         msg = f"Пользователю {req.username} начислено +{req.days} дней."
+    elif req.action == "remove_days":
+        cur_exp = target["sub_expires_at"] or 0
+        if cur_exp <= now:
+            new_exp = 0
+        else:
+            new_exp = max(0, cur_exp - (req.days * 86400))
+            if new_exp <= now:
+                new_exp = 0
+        cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (new_exp, target["id"]))
+        msg = f"У пользователя {req.username} списано -{req.days} дней подписки."
+    elif req.action == "clear_sub":
+        cursor.execute("UPDATE users SET sub_expires_at = 0 WHERE id = ?", (target["id"],))
+        msg = f"Подписка пользователя {req.username} полностью обнулена."
+    elif req.action == "set_days":
+        new_exp = (now + (req.days * 86400)) if req.days > 0 else 0
+        cursor.execute("UPDATE users SET sub_expires_at = ? WHERE id = ?", (new_exp, target["id"]))
+        msg = f"Пользователю {req.username} установлено ровно {req.days} дней подписки."
     elif req.action == "reset_hwid":
         cursor.execute("UPDATE users SET hwid = NULL WHERE id = ?", (target["id"],))
         msg = f"HWID пользователя {req.username} успешно сброшен!"

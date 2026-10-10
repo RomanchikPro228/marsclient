@@ -700,7 +700,9 @@ async function loadAdminData() {
                     <td>${hwidDisplay}</td>
                     <td>${statusBadge}</td>
                     <td class="action-buttons-cell">
-                        <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'add_days', 30)">+30д</button>
+                        <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'add_days', 30)" title="Додати 30 днів">+30д</button>
+                        <button class="btn-mini" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);" onclick="adminUserAction('${escapeHtml(u.username)}', 'remove_days', 30)" title="Забрати 30 днів">-30д</button>
+                        <button class="btn-mini" onclick="promptChangeDays('${escapeHtml(u.username)}')" title="Вказати свою кількість днів">±Дні</button>
                         <button class="btn-mini" onclick="adminUserAction('${escapeHtml(u.username)}', 'reset_hwid')">Сброс HWID</button>
                         <button class="${banBtnClass}" onclick="adminUserAction('${escapeHtml(u.username)}', 'toggle_ban')">${banBtnText}</button>
                     </td>
@@ -803,6 +805,25 @@ async function adminUserAction(username, action, days = 0) {
         }
     } catch (err) {
         showToast("Ошибка соединения!", "error");
+    }
+}
+
+function promptChangeDays(username) {
+    const val = prompt(`Зміна підписки для ${username}.\nВведіть кількість днів (наприклад, 15 щоб додати, або -10 щоб забрати, або 0 щоб повністю зняти підписку):`, "30");
+    if (val === null) return;
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    const num = parseInt(trimmed, 10);
+    if (isNaN(num)) {
+        alert("Будь ласка, введіть числове значення!");
+        return;
+    }
+    if (num > 0) {
+        adminUserAction(username, 'add_days', num);
+    } else if (num < 0) {
+        adminUserAction(username, 'remove_days', Math.abs(num));
+    } else {
+        adminUserAction(username, 'clear_sub');
     }
 }
 
