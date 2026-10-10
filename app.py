@@ -673,12 +673,17 @@ async def launcher_auth(req: LauncherAuthRequest):
             conn.close()
             return {"status": "error", "message": "Неверный HWID! Сбросьте привязку в Личном кабинете или у администратора."}
 
+    import hmac, hashlib
+    seed_raw = f"{user_dict['id']}:{hwid}:{expires}:{JWT_SECRET}".encode('utf-8')
+    session_seed = hmac.new(b"MARS_SECURE_AUTH_SEED_2026", seed_raw, hashlib.sha256).hexdigest()
+
     conn.close()
     days_left = round((expires - now) / 86400, 1)
     return {
         "status": "success",
         "username": user_dict["username"],
         "days_left": days_left,
+        "session_seed": session_seed,
         "token": create_token({"sub": user_dict["username"], "email": user_dict["email"]})
     }
 
