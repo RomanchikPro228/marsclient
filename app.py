@@ -15,6 +15,7 @@ import io
 from database import get_connection, init_db
 
 SECRET_KEY = "marsclient_super_secret_jwt_key_2026_mars_orbit"
+JWT_SECRET = SECRET_KEY
 ALGORITHM = "HS256"
 ADMIN_EMAIL = "r.grabovyi@gmail.com"
 FUNPAY_URL = "https://funpay.com/uk/users/14128634/"
